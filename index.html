@@ -29,14 +29,14 @@
   </div>
   <div class="scope"><span class="chip">元素周期律已讲完</span><span class="chip">物质分类第一讲</span><span class="chip">气体摩尔体积 · 10:00开放</span><span class="chip">使用ⅠA～ⅦA族表述</span></div>
   <form id="form" class="form-grid">
-    <label>姓名（必填）<input id="name" class="input" required autocomplete="off" placeholder="请输入完整姓名"></label>
+    <label>姓名<input id="name" class="input" required autocomplete="off" placeholder="请输入姓名"></label>
     <label>4位学习码（必填）<input id="learningCode" class="input" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="请输入4位学习码"></label>
     <label>学校/班级（可选）<input id="className" class="input" autocomplete="off" placeholder="可不填写"></label>
-    <button id="loginBtn" class="btn primary">按姓名读取训练记录</button>
-    <div id="syncStatus" class="sync-status">记录归属按姓名判断；同一手机连续3次验证同一姓名后，才会自动进入该学生界面。</div>
+    <button id="loginBtn" class="btn primary">读取我的训练记录</button>
+    <div id="syncStatus" class="sync-status">记录按姓名归属；同一设备连续3次验证同一姓名后，才会自动进入训练中心。</div>
   </form>
   <div id="history" class="history"></div>
-  <p class="note">记录按学生姓名联网保存。同一学生更换手机仍可接续；共享手机切换姓名后，记录会自动分开。</p>
+  <p class="note">记录按姓名联网保存。更换设备后仍可接续；共享设备切换姓名后，记录会自动分开。</p>
 </section>
 
 <section id="dashboard" class="panel hidden">
@@ -1522,7 +1522,7 @@ async function switchStudent(){
   const token=state.syncToken,name=state.name;
   state.syncToken='';state.profile=null;state.name='';state.cls='';
   localStorage.removeItem(TRUSTED_LOGIN_KEY);localStorage.removeItem(LOGIN_STREAK_KEY);
-  $('name').value='';$('learningCode').value='';$('className').value='';$('history').innerHTML='';$('syncStatus').className='sync-status';$('syncStatus').textContent='记录归属按姓名判断；同一手机连续3次验证同一姓名后，才会自动进入该学生界面。';
+  $('name').value='';$('learningCode').value='';$('className').value='';$('history').innerHTML='';$('syncStatus').className='sync-status';$('syncStatus').textContent='记录按姓名归属；同一设备连续3次验证同一姓名后，才会自动进入训练中心。';
   $('topDay').textContent='从8月3日开始';updateCloudBadge('未验证姓名','');show('start');
   if(token&&name){try{await cloudApi({action:'logout',name:name,token:token})}catch(error){}}
 }
@@ -1559,7 +1559,7 @@ $('form').onsubmit=async function(event){
   }catch(error){
     localStorage.removeItem(LOGIN_STREAK_KEY);localStorage.removeItem(TRUSTED_LOGIN_KEY);
     $('syncStatus').className='sync-status error';$('syncStatus').textContent=error.message;updateCloudBadge('验证失败','wait');
-  }finally{button.disabled=false;button.textContent='按姓名读取训练记录'}
+  }finally{button.disabled=false;button.textContent='读取我的训练记录'}
 };
 $('dashHome').onclick=switchStudent;
 $('resetHistory').onclick=async function(){
