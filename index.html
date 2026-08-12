@@ -25,13 +25,13 @@
 <section id="start" class="panel">
   <p class="eyebrow">DIAGNOSE · PRACTISE · TRANSFER</p>
   <h1>化学学习日历</h1>
-  <p class="lead">物质的量基础与相关计算已经开放；气体摩尔体积须等8月13日中午12:00讲完后才开放。</p>
+  <p class="lead">物质的量计算专项已经开放，只考带具体物质和数字的计算；气体摩尔体积须等8月13日中午12:00讲完后才开放。</p>
   <div class="promise">
     <div><b>14天</b><span>从8月3日起按日安排</span></div>
     <div><b>5轮自适应</b><span>前五轮优先使用不同变式</span></div>
     <div><b>1000+题</b><span>独立题目与变式储备</span></div>
   </div>
-  <div class="scope"><span class="chip">元素周期律已讲完</span><span class="chip">物质分类第一讲</span><span class="chip">物质的量基础 · 已开放</span><span class="chip">气体摩尔体积 · 8月13日12:00开放</span></div>
+  <div class="scope"><span class="chip">元素周期律已讲完</span><span class="chip">物质分类第一讲</span><span class="chip">物质的量计算 · 已开放</span><span class="chip">气体摩尔体积 · 8月13日12:00开放</span></div>
   <form id="form" class="form-grid">
     <label>姓名<input id="name" class="input" required autocomplete="off" placeholder="请输入姓名"></label>
     <label>4位学习码（必填）<input id="learningCode" class="input" required inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="one-time-code" placeholder="请输入4位学习码"></label>
@@ -273,7 +273,7 @@ const DAY_META={
 };
 const MOLE_BASICS_UNLOCK_AT='2026-08-12T10:00:00+08:00';
 const GAS_MOLAR_UNLOCK_AT='2026-08-13T12:00:00+08:00';
-const MOLE_BASICS_DIAGNOSTIC_TAGS=['物质的量概念','摩尔与微粒','阿伏伽德罗常数','粒子数计算','摩尔质量','摩尔质量计算','质量与物质的量','物质的量计算','质量粒子数综合','物质的量综合'];
+const MOLE_CALCULATION_DIAGNOSTIC_TAGS=['粒子数计算','摩尔质量计算','质量与物质的量','物质的量计算','质量粒子数综合','物质的量综合'];
 const GAS_MOLAR_DIAGNOSTIC_TAGS=['气体体积影响因素','气体摩尔体积概念','标准状况','标况物态判断','气体摩尔体积适用范围','气体体积与物质的量','气体体积与粒子数','气体体积与质量','阿伏加德罗定律','同温同压气体比例','同温同容气体比例','等质量同温同容气体比较','气体密度与摩尔质量','等质量气体比较','等体积气体比较','标况密度求摩尔质量','混合气体平均摩尔质量'];
 const SCHEDULE={
   1:{date:'2026-08-03',weekday:'周一',stage:'已讲完 · 可回炉',title:'周期、主族与核外电子',target:12,poolDays:[1,3],review:['周期数','主族序数','最外层电子'],tags:['周期规律','主族序数','最高正价','最低负价','位置综合推断'],desc:'回顾元素位置与核外电子排布的对应关系，为化合价和性质推断打底。',cards:[
@@ -297,8 +297,8 @@ const SCHEDULE={
   9:{date:'2026-08-11',weekday:'周二',stage:'本周已学 · 可回炉',title:'物质分类第一讲②',target:15,poolDays:[3,4,5],review:['树状分类','氧化物定义','交叉分类'],tags:['分类概念','树状分类法','纯净物与混合物','单质与化合物','氧化物定义','包含关系','交叉分类法','盐的多角度分类','酸的多角度分类','氧化物分类'],desc:'巩固两天已经讲完的分类第一讲：树状分类、氧化物定义和多角度分类。',cards:[
     DAY_META[4].cards[0],DAY_META[4].cards[3],['氧化物三条件','必须同时满足：化合物、只含两种元素、其中一种是氧元素。'],DAY_META[5].cards[0],DAY_META[5].cards[1],DAY_META[5].cards[4]
   ]},
-  10:{date:'2026-08-12',weekday:'周三',stage:'已开放',title:'物质的量基础与相关计算',target:15,poolDays:[10,11,12,13,14],unlockAt:MOLE_BASICS_UNLOCK_AT,assessmentKey:'mole-basics-v1',assessmentPrefix:'MOL-',adaptiveRatio:.6,diagnosticTags:MOLE_BASICS_DIAGNOSTIC_TAGS.slice(),review:['n与mol','N=nNₐ','n=m/M'],tags:MOLE_BASICS_DIAGNOSTIC_TAGS.slice(),desc:'本轮不含气体摩尔体积。首轮逐点检测物质的量、微粒数、阿伏伽德罗常数、摩尔质量及m—n—N计算；第2—5轮按个人错题和慢题安排新的同类型变式。',cards:[
-    ['物质的量与摩尔','物质的量用n表示，单位是摩尔，符号mol；使用mol时必须写清指定微粒。'],['粒子数关系','N=nNₐ；反过来n=N/Nₐ。若问原子或离子数，还要核对化学式下标。'],['摩尔质量','摩尔质量用M表示，常用单位g·mol⁻¹；按化学式中各原子的相对原子质量及下标求和。'],['质量换算','n=m/M；m=nM。代入前先统一m与M的单位。'],['综合计算链','质量m ÷ M → 物质的量n × Nₐ → 指定微粒数N。'],['本轮边界','不出现气体体积、标准状况、22.4 L·mol⁻¹及阿伏加德罗定律。']
+  10:{date:'2026-08-12',weekday:'周三',stage:'已开放',title:'物质的量计算专项',target:15,poolDays:[10],unlockAt:MOLE_BASICS_UNLOCK_AT,assessmentKey:'mole-calculation-v2',assessmentPrefix:'CALC-',adaptiveRatio:.6,diagnosticTags:MOLE_CALCULATION_DIAGNOSTIC_TAGS.slice(),review:['N=nNₐ','n=m/M','m—n—N'],tags:MOLE_CALCULATION_DIAGNOSTIC_TAGS.slice(),desc:'只考带具体物质和数字的计算，不考概念定义、单位辨析或公式选择。首轮覆盖6类计算；第2—5轮按个人错题和慢题安排新的同类型变式。',cards:[
+    ['粒子数换算','N=nNₐ；反过来n=N/Nₐ。若问原子数，还要核对化学式下标。'],['摩尔质量计算','按化学式中各原子的相对原子质量及下标求和，结果单位写g·mol⁻¹。'],['质量换算','n=m/M；m=nM。代入前先统一m与M的单位。'],['综合计算链','质量m ÷ M → 物质的量n × Nₐ → 指定微粒数N。'],['本轮题型','每题都给出具体物质和数字，要求完成一步或两步计算。'],['本轮边界','不考概念定义；不出现气体体积、标准状况、22.4 L·mol⁻¹及阿伏加德罗定律。']
   ]},
   11:{date:'2026-08-13',weekday:'周四',stage:'8月13日12:00开放',title:'气体摩尔体积与相关计算',target:17,poolDays:[11],unlockAt:GAS_MOLAR_UNLOCK_AT,assessmentKey:'gas-molar-volume-v2',assessmentPrefix:'GMV-',adaptiveRatio:.6,diagnosticTags:GAS_MOLAR_DIAGNOSTIC_TAGS.slice(),review:['Vₘ=V/n','标况22.4 L·mol⁻¹','V—n—N/m'],tags:GAS_MOLAR_DIAGNOSTIC_TAGS.slice(),desc:'8月13日中午12:00讲完后开放。首轮逐点检测，后续轮次再按错题与慢题自适应。',cards:[
     ['开放时间','本内容须等8月13日中午12:00讲完后才能进入。'],['先核对条件','标准状况指0 ℃、101 kPa；只有在该条件下，本课才取Vₘ≈22.4 L·mol⁻¹。'],['先核对物态','必须是气体；标况下的H₂O、SO₃、乙醇等不能直接套用22.4 L·mol⁻¹。'],['三条计算链','n=V/Vₘ；N=nNₐ；m=nM。先由气体体积求n，再按题目所求继续换算。'],['阿伏加德罗定律','同温同压下V之比=n之比=气体微粒数之比；同温同容下p之比=n之比。']
@@ -1215,6 +1215,11 @@ molarData.forEach(function(x,i){
   add(14,'物质的量综合','MNN-P-'+String(i+1).padStart(3,'0'),'从'+formula+'的质量m求'+particle+'的数目N，正确的计算顺序是？','m ÷ M求n，再用nNₐ求N',['m × M求n，再除以Nₐ','m ÷ Nₐ求n，再乘M','直接用mNₐ，不需要M'],'已明确所求对象为'+particle+'；质量与该微粒数之间必须以物质的量为桥梁。','mole',2,'m—n—N关系链辨析');
 });
 
+const MOLE_CALCULATION_SOURCE_PATTERNS=[/^NA-(?:N|R|A)-/,/^MM-M-/,/^MN-(?:M|N)-/,/^MNN-(?:N|M)-/];
+Object.values(pools).flat().filter(function(q){return MOLE_CALCULATION_SOURCE_PATTERNS.some(function(pattern){return pattern.test(q.id)})}).forEach(function(source){
+  pools[10].push(Object.assign({},source,{id:'CALC-'+source.id,day:10,sourceModel:source.sourceModel+' · 计算专项'}));
+});
+
 const diagnosis={
   '离子识别':'离子名称、组成和右上角电荷还没有形成稳定对应。',
   '酸碱盐分类':'没有先抓住电离产生的离子或物质的离子组成。',
@@ -1558,8 +1563,9 @@ function returnToStudentEntry(){
   if(state.profile&&state.name)renderDashboard();else{updateCloudBadge('未验证姓名','');$('topDay').textContent='从8月3日开始';show('start')}
 }
 function formatTime(sec){const m=Math.floor(sec/60),s=sec%60;return m?m+'分'+s+'秒':s+'秒'}
+function isWithdrawnDay10Session(session){return session&&session.day===10&&Array.isArray(session.answers)&&!session.answers.some(function(answer){return String(answer&&answer.id||'').startsWith('CALC-')})}
 function renderHistory(){
-  const recent=state.profile.sessions.slice().sort(function(a,b){return (b.dateMs||0)-(a.dateMs||0)}).slice(0,5);
+  const recent=state.profile.sessions.filter(function(session){return !isWithdrawnDay10Session(session)}).sort(function(a,b){return (b.dateMs||0)-(a.dateMs||0)}).slice(0,5);
   $('history').innerHTML=recent.length?'<b>该姓名最近训练（联网记录）</b>'+recent.map(function(s){const meta=SCHEDULE[s.day];return '<div class="history-item"><span>'+(meta?dateWithWeek(meta):'第'+s.day+'天')+' · 第'+s.round+'轮</span><span>'+s.correct+'/'+s.total+' · '+Math.round(s.correct/s.total*100)+'%</span></div>'}).join(''):'';
 }
 let releaseRefreshTimerId=0;
