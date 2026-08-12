@@ -14,9 +14,13 @@
 @media(max-width:720px){.panel{padding:17px}.promise,.day-grid,.cards,.signal-grid{grid-template-columns:1fr}.day-card{min-height:auto}.signal{min-height:auto}.skill-row{grid-template-columns:104px 1fr 42px}.share-head{padding:17px}.score-orb{width:80px;height:80px}.question{font-size:18px}.molecule-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.diagram-row{gap:5px}.atom-card{width:132px}.row .btn{flex:1}.qhead{font-size:12px}}@media print{body{background:#fff}.top,#start,#dashboard,#cards,#quiz,.details,.row,.footer{display:none!important}.panel{border:0;box-shadow:none;padding:0}.share-wrap{padding:0}}
 .review-notice{margin:10px 0;padding:10px 12px;border-radius:10px;background:#fff6e7;color:#805d20;font-size:13px}.difficulty{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:#edf4f7;color:#476273;font-size:11px;font-weight:750}.report-tabs{display:flex;gap:7px;margin-bottom:12px;background:#e7eef1;padding:6px;border-radius:13px}.report-tabs .btn{flex:1}.report-tabs .active{background:#fff;color:var(--navy);box-shadow:0 3px 10px #16344b12}.teacher-panel{display:grid;gap:12px}.teacher-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.teacher-card{padding:14px;border:1px solid var(--line);border-radius:13px;background:#fbfdfe}.teacher-card b{display:block;margin-bottom:5px}.teacher-card p{margin:0;color:#526b7a;font-size:14px}.evidence{font-variant-numeric:tabular-nums;color:var(--navy);font-weight:800}.family-copy{white-space:pre-wrap;padding:14px;border-left:4px solid var(--teal);background:#edf8f6;border-radius:10px;font-size:14px}@media(max-width:720px){.teacher-grid{grid-template-columns:1fr}.week-block{padding:11px}.week-row{min-width:930px;grid-template-columns:repeat(7,minmax(124px,1fr))}.calendar-day{min-height:218px}}
 </style>
+<style>
+.teacher-entry{padding:7px 11px;font-size:12px}.audit-login{max-width:560px}.audit-shell{display:grid;gap:16px}.audit-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.audit-head .lead{margin-bottom:0}.audit-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.audit-stat{padding:14px;border:1px solid var(--line);border-radius:13px;background:#f8fbfc}.audit-stat b{display:block;color:var(--blue);font-size:22px}.audit-stat span{font-size:12px;color:var(--muted)}.audit-controls{display:grid;grid-template-columns:2fr 1fr 2fr auto;gap:10px;align-items:end;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fbfdfe}.audit-controls label{display:grid;gap:5px;font-size:12px;color:var(--muted)}.audit-rounds{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.audit-round{padding:10px;border:1px solid var(--line);border-radius:11px;background:#fff;font-size:12px;color:var(--muted)}.audit-round b{display:block;color:var(--navy);font-size:14px}.audit-round.active{border-color:var(--teal);background:#edf9f7}.audit-status{padding:12px 14px;border-left:4px solid var(--teal);border-radius:10px;background:#edf9f7;color:#315e5c;font-size:13px}.audit-question-list{display:grid;gap:12px}.audit-question{padding:15px;border:1px solid var(--line);border-radius:14px;background:#fff}.audit-question h3{font-size:17px;margin:9px 0}.audit-meta{display:flex;gap:6px;flex-wrap:wrap}.audit-meta span{font-size:11px;padding:3px 7px;border-radius:999px;background:#edf4f6;color:#496675}.audit-options{display:grid;gap:6px;margin:10px 0;padding:0;list-style:none;counter-reset:audit-option}.audit-options li{counter-increment:audit-option;padding:8px 10px;border-radius:9px;background:#f5f8fa}.audit-options li::before{content:counter(audit-option,upper-alpha) ". ";font-weight:800;color:var(--muted)}.audit-options li.correct{background:#eaf8f2;color:var(--green);font-weight:750}.audit-answer{padding:10px;border-radius:9px;background:#f0faf9;font-size:13px;color:#315e5c}.audit-login-note{font-size:12px;color:var(--muted);margin:10px 0 0}.audit-error{color:var(--red);font-size:13px;min-height:20px}.audit-empty{padding:20px;text-align:center;color:var(--muted)}
+@media(max-width:820px){.audit-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.audit-controls{grid-template-columns:1fr 1fr}.audit-controls label:first-child,.audit-controls button{grid-column:1/-1}.audit-rounds{grid-template-columns:1fr}.audit-head{display:grid}.teacher-entry{padding:6px 9px}.top{align-items:flex-start}}
+</style>
 </head>
 <body><main class="shell">
-<div class="top"><div class="brand">⚗ 甘老师化学 · 初高衔接</div><div class="row"><span id="cloudBadge" class="cloud-badge">未验证姓名</span><div id="topDay" class="day-pill">从8月3日开始</div></div></div>
+<div class="top"><div class="brand">⚗ 甘老师化学 · 初高衔接</div><div class="row"><button id="teacherReviewEntry" class="btn secondary teacher-entry" type="button">教师审核</button><span id="cloudBadge" class="cloud-badge">未验证姓名</span><div id="topDay" class="day-pill">从8月3日开始</div></div></div>
 
 <section id="start" class="panel">
   <p class="eyebrow">DIAGNOSE · PRACTISE · TRANSFER</p>
@@ -37,6 +41,48 @@
   </form>
   <div id="history" class="history"></div>
   <p class="note">记录按姓名联网保存。更换设备后仍可接续；共享设备切换姓名后，记录会自动分开。</p>
+</section>
+
+<section id="teacherLogin" class="panel hidden">
+  <div class="audit-login">
+    <p class="eyebrow">TEACHER · READ-ONLY REVIEW</p>
+    <h1>教师审核入口</h1>
+    <p class="lead">使用现有教师姓名和8位教师登录码。审核过程只读，不会写入学生训练记录。</p>
+    <form id="teacherReviewForm" class="form-grid">
+      <label>教师姓名<input id="teacherReviewName" class="input" required autocomplete="username" placeholder="请输入教师姓名"></label>
+      <label>8位教师登录码<input id="teacherReviewCode" class="input" required inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="one-time-code" placeholder="请输入8位教师登录码"></label>
+      <button id="teacherReviewLoginBtn" class="btn primary">进入审核台</button>
+      <div id="teacherReviewError" class="audit-error" role="alert"></div>
+    </form>
+    <p class="audit-login-note">学生仍使用首页的姓名和4位学习码；两个入口相互独立。</p>
+    <div class="row" style="margin-top:16px"><button id="teacherReviewBack" class="btn secondary" type="button">返回学生入口</button></div>
+  </div>
+</section>
+
+<section id="teacherAudit" class="panel hidden">
+  <div class="audit-shell">
+    <div class="audit-head">
+      <div><p class="eyebrow">TEACHER · QUIZ AUDIT</p><h1>小测审核台</h1><p class="lead">逐轮查看题目、答案与解析，并用模拟错慢项检验第2—5轮自适应。全部为只读预览。</p></div>
+      <div class="row"><span id="teacherReviewerName" class="cloud-badge online"></span><button id="teacherReviewLogout" class="btn secondary" type="button">退出审核</button></div>
+    </div>
+    <div class="audit-summary">
+      <div class="audit-stat"><b id="auditTotalQuestions">0</b><span>题库总题数</span></div>
+      <div class="audit-stat"><b>5轮</b><span>本次审核预览</span></div>
+      <div class="audit-stat"><b id="auditFirstCoverage">0/0</b><span>首轮知识点覆盖</span></div>
+      <div class="audit-stat"><b id="auditUniqueQuestions">0</b><span>五轮不同题目</span></div>
+    </div>
+    <div class="audit-controls">
+      <label>审核日期<select id="auditDay" class="input"></select></label>
+      <label>查看轮次<select id="auditRound" class="input"><option value="1">第1轮</option><option value="2">第2轮</option><option value="3">第3轮</option><option value="4">第4轮</option><option value="5">第5轮</option></select></label>
+      <label>模拟错答/慢答知识点<select id="auditFocusTag" class="input"></select></label>
+      <button id="auditRegenerate" class="btn primary" type="button">重新生成审核题</button>
+    </div>
+    <div id="auditAdaptiveStatus" class="audit-status"></div>
+    <div id="auditRoundSummary" class="audit-rounds"></div>
+    <div><h2 id="auditQuestionTitle">本轮题目</h2><p id="auditQuestionMeta" class="lead"></p></div>
+    <div id="auditQuestionList" class="audit-question-list"></div>
+    <div class="row"><button id="teacherAuditHome" class="btn secondary" type="button">返回学生入口</button></div>
+  </div>
 </section>
 
 <section id="dashboard" class="panel hidden">
@@ -100,6 +146,7 @@
 
 <script>
 const CLOUD_SYNC_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-student-sync';
+const TEACHER_ACCESS_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-access';
 const CLOUD_PUBLISHABLE_KEY='sb_publishable_M4xdf_9aRaxoEnHnTQZ_rg_uIQfeEgb';
 const LOGIN_STREAK_KEY='chemistry-login-streak-v1';
 const TRUSTED_LOGIN_KEY='chemistry-trusted-name-v1';
@@ -110,6 +157,12 @@ async function cloudApi(payload){
   const response=await fetch(CLOUD_SYNC_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','apikey':CLOUD_PUBLISHABLE_KEY},body:JSON.stringify(payload)});
   let data={};try{data=await response.json()}catch(error){}
   if(!response.ok)throw new Error(data.message||'联网同步失败，请检查网络后重试。');
+  return data;
+}
+async function teacherAccessApi(payload){
+  const response=await fetch(TEACHER_ACCESS_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','apikey':CLOUD_PUBLISHABLE_KEY},body:JSON.stringify(payload)});
+  let data={};try{data=await response.json()}catch(error){}
+  if(!response.ok)throw new Error(data.error||'教师登录暂时不可用，请稍后重试。');
   return data;
 }
 function sessionIdentity(s){return s.clientSessionId||['legacy',s.day,s.round,s.dateMs||s.date||''].join('-')}
@@ -1208,8 +1261,10 @@ const allQuestions=Object.values(pools).flat();
 const byId=Object.fromEntries(allQuestions.map(function(q){return [q.id,q]}));
 const storageKey=function(name){return 'chem-bridge-5round:'+name.trim().toLowerCase()};
 let state={name:'',cls:'',profile:null,syncToken:'',syncing:false,day:1,round:1,questions:[],adaptiveTags:[],adaptiveFrom:'',mode:'standard',sourceSignals:null,reviewMode:false,minSubmitSec:0,repeatMode:false,repeatExact:false,i:0,qStart:0,quizStart:0,answers:[],timerId:null};
+let auditGeneration=0;
+let teacherReviewIdentity=null;
 const $=function(id){return document.getElementById(id)};
-function show(id){['start','dashboard','cards','quiz','report'].forEach(function(x){$(x).classList.toggle('hidden',x!==id)})}
+function show(id){['start','teacherLogin','teacherAudit','dashboard','cards','quiz','report'].forEach(function(x){$(x).classList.toggle('hidden',x!==id)})}
 function emptyProfile(name){return {name:name,cls:'',sessions:[]}}
 function loadProfile(name){
   try{
@@ -1314,7 +1369,7 @@ function buildQuestions(day,round){
     if(chosen.some(function(q){return q.tag===tag}))return;
     let freshPool=fresh.filter(function(q){return q.tag===tag&&!chosen.some(function(x){return x.id===q.id})}),recycledPool=recycled.filter(function(q){return q.tag===tag&&!chosen.some(function(x){return x.id===q.id})});
     if(mode==='challenge'&&chosen.filter(function(x){return x.level>=3}).length>=challengeQuota){const freshBase=freshPool.filter(function(q){return q.level<=2}),recycledBase=recycledPool.filter(function(q){return q.level<=2});if(freshBase.length||recycledBase.length){freshPool=freshBase;recycledPool=recycledBase}}
-    let pool=freshPool.length?freshPool:recycledPool;
+    let pool=freshPool.length?freshPool:(round<=5?[]:recycledPool);
     pool=shuffled(pool,state.name+'-'+day+'-'+round+'-'+tag);
     if(mode==='review')pool=pool.sort(function(a,b){return a.level-b.level});
     if(pool[0])chosen.push(pool[0]);
@@ -1327,6 +1382,72 @@ function buildQuestions(day,round){
   for(const q of fill){if(chosen.length>=meta.target)break;chosen.push(q)}
   if(chosen.length<meta.target)throw new Error('本日未做题目不足，请联系老师补充题库。');
   return {questions:shuffled(chosen,state.name+'-'+day+'-'+round+'-order'),tags:compatibleTags,source:context.source,mode:mode,signals:context.signals,repeatExact:false,diagnosticRound:diagnosticRound};
+}
+function escapeAuditHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]})}
+function readTeacherReviewSession(){
+  if(!teacherReviewIdentity||teacherReviewIdentity.role!=='teacher'||!teacherReviewIdentity.token||Date.parse(teacherReviewIdentity.expiresAt||'')<=Date.now()){teacherReviewIdentity=null;return null}
+  return teacherReviewIdentity;
+}
+function buildTeacherAuditSequence(day,focusTag,seed){
+  const savedState=state,meta=SCHEDULE[day],rounds=[];
+  state=Object.assign({},savedState,{name:seed||'教师审核',cls:'',profile:emptyProfile(seed||'教师审核'),syncToken:'',day:day,round:1,repeatMode:false,repeatExact:false});
+  try{
+    for(let round=1;round<=5;round++){
+      state.round=round;
+      const built=buildQuestions(day,round),answers=built.questions.map(function(q){
+        const needsRecovery=q.tag===focusTag;
+        return {id:q.id,day:q.day,tag:q.tag,level:q.level,sourceModel:q.sourceModel,q:q.q,ok:!needsRecovery,sec:needsRecovery?50:18,mine:needsRecovery?q.o[(q.a+1)%q.o.length]:q.o[q.a],correctAnswer:q.o[q.a],explanation:q.e};
+      });
+      const correct=answers.filter(function(answer){return answer.ok}).length,totalSec=answers.reduce(function(sum,answer){return sum+answer.sec},0);
+      const session={clientSessionId:'teacher-audit-'+day+'-'+round,day:day,round:round,date:'教师审核',dateMs:round,correct:correct,total:answers.length,totalSec:totalSec,answers:answers,assessmentKey:meta.assessmentKey||''};
+      state.profile.sessions.push(session);
+      rounds.push({round:round,questions:built.questions,tags:built.tags,mode:built.mode,source:built.source,session:session});
+    }
+    return rounds;
+  }finally{state=savedState}
+}
+function populateAuditDayOptions(){
+  if($('auditDay').options.length)return;
+  $('auditDay').innerHTML=Object.keys(SCHEDULE).map(function(day){const meta=SCHEDULE[day];return '<option value="'+day+'">'+escapeAuditHtml(dateWithWeek(meta)+' · '+meta.title)+'</option>'}).join('');
+  $('auditDay').value='10';
+}
+function populateAuditFocusOptions(day){
+  const meta=SCHEDULE[day],previous=$('auditFocusTag').value,tags=(meta.diagnosticTags&&meta.diagnosticTags.length?meta.diagnosticTags:meta.tags)||[];
+  $('auditFocusTag').innerHTML=tags.map(function(tag){return '<option value="'+escapeAuditHtml(tag)+'">'+escapeAuditHtml(tag)+'</option>'}).join('');
+  if(tags.includes(previous))$('auditFocusTag').value=previous;
+}
+function renderTeacherAudit(){
+  const teacherSession=readTeacherReviewSession();if(!teacherSession){show('teacherLogin');return}
+  populateAuditDayOptions();
+  const day=Number($('auditDay').value||10);populateAuditFocusOptions(day);
+  const roundNumber=Math.max(1,Math.min(5,Number($('auditRound').value)||1)),focusTag=$('auditFocusTag').value||SCHEDULE[day].tags[0],meta=SCHEDULE[day];
+  const rounds=buildTeacherAuditSequence(day,focusTag,'甘老师审核-'+day+'-'+focusTag+'-'+auditGeneration),first=rounds[0],expectedTags=(meta.diagnosticTags&&meta.diagnosticTags.length?meta.diagnosticTags:meta.tags)||[],firstTags=new Set(first.questions.map(function(q){return q.tag})),covered=expectedTags.filter(function(tag){return firstTags.has(tag)}).length;
+  const allIds=rounds.flatMap(function(item){return item.questions.map(function(q){return q.id})}),uniqueIds=new Set(allIds),selected=rounds[roundNumber-1],seen=new Set();
+  $('teacherReviewerName').textContent=(teacherSession.displayName||'甘老师')+' · 已验证';
+  $('auditTotalQuestions').textContent=String(allQuestions.length);
+  $('auditFirstCoverage').textContent=covered+'/'+expectedTags.length;
+  $('auditUniqueQuestions').textContent=uniqueIds.size+'/'+allIds.length;
+  $('auditAdaptiveStatus').textContent='第1轮覆盖 '+covered+'/'+expectedTags.length+' 个要求知识点；审核模拟把“'+focusTag+'”设为错答且停留50秒，第2—5轮会优先用新的同类型题回收。'+(uniqueIds.size===allIds.length?' 五轮题目没有跨轮重复。':' 当前五轮检测到 '+(allIds.length-uniqueIds.size)+' 道跨轮重复，请继续检查。');
+  $('auditRoundSummary').innerHTML=rounds.map(function(item){
+    const newCount=item.questions.filter(function(q){if(seen.has(q.id))return false;seen.add(q.id);return true}).length;
+    return '<div class="audit-round '+(item.round===roundNumber?'active':'')+'"><b>第'+item.round+'轮 · '+item.questions.length+'题</b><span>新题 '+newCount+' 道 · '+(item.mode==='review'?'审题回收':item.mode==='challenge'?'迁移升难':'难度匹配')+'</span></div>';
+  }).join('');
+  $('auditQuestionTitle').textContent=dateWithWeek(meta)+' · 第'+roundNumber+'轮审核题';
+  $('auditQuestionMeta').textContent=meta.title+'｜目标 '+meta.target+' 题｜本轮包含 '+new Set(selected.questions.map(function(q){return q.tag})).size+' 个知识点';
+  $('auditQuestionList').innerHTML=selected.questions.length?selected.questions.map(function(q,index){
+    const options=q.o.map(function(option,optionIndex){return '<li class="'+(optionIndex===q.a?'correct':'')+'">'+chemistryHtml(escapeAuditHtml(option))+'</li>'}).join('');
+    return '<article class="audit-question"><div class="audit-meta"><span>第'+(index+1)+'题</span><span>'+escapeAuditHtml(q.id)+'</span><span>'+escapeAuditHtml(q.tag)+'</span><span>L'+q.level+'</span><span>'+escapeAuditHtml(q.sourceModel)+'</span></div><h3>'+chemistryHtml(escapeAuditHtml(q.q))+'</h3><ol class="audit-options">'+options+'</ol><div class="audit-answer"><b>正确答案：</b>'+chemistryHtml(escapeAuditHtml(q.o[q.a]))+'<br><b>解析：</b>'+chemistryHtml(escapeAuditHtml(q.e))+'</div></article>';
+  }).join(''):'<div class="audit-empty">本轮没有可预览题目。</div>';
+  updateCloudBadge('教师审核 · 只读','online');$('topDay').textContent='第1—5轮审核';show('teacherAudit');
+}
+function openTeacherReview(){
+  history.replaceState(null,'',location.pathname+location.search+'#teacher-review');
+  const session=readTeacherReviewSession();
+  if(session)renderTeacherAudit();else{updateCloudBadge('教师审核入口','wait');$('topDay').textContent='只读审核';$('teacherReviewError').textContent='';show('teacherLogin')}
+}
+function returnToStudentEntry(){
+  history.replaceState(null,'',location.pathname+location.search);
+  if(state.profile&&state.name)renderDashboard();else{updateCloudBadge('未验证姓名','');$('topDay').textContent='从8月3日开始';show('start')}
 }
 function formatTime(sec){const m=Math.floor(sec/60),s=sec%60;return m?m+'分'+s+'秒':s+'秒'}
 function renderHistory(){
@@ -1581,8 +1702,29 @@ $('nextDay').onclick=function(){if(state.day<14)chooseDay(state.day+1,'new')};
 $('copy').onclick=async function(){try{await navigator.clipboard.writeText($('copyText').textContent);$('copy').textContent='已复制'}catch(error){const range=document.createRange();range.selectNodeContents($('copyText'));const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);$('copy').textContent='已选中，请长按复制'}setTimeout(function(){$('copy').textContent='复制完整记录'},1600)};
 $('studentTab').onclick=function(){$('studentPanel').classList.remove('hidden');$('teacherPanel').classList.add('hidden');$('studentTab').classList.add('active');$('teacherTab').classList.remove('active')};
 $('teacherTab').onclick=function(){$('studentPanel').classList.add('hidden');$('teacherPanel').classList.remove('hidden');$('teacherTab').classList.add('active');$('studentTab').classList.remove('active')};
+$('teacherReviewEntry').onclick=openTeacherReview;
+$('teacherReviewBack').onclick=returnToStudentEntry;
+$('teacherAuditHome').onclick=returnToStudentEntry;
+$('teacherReviewLogout').onclick=function(){teacherReviewIdentity=null;$('teacherReviewCode').value='';openTeacherReview()};
+$('teacherReviewForm').onsubmit=async function(event){
+  event.preventDefault();
+  const name=$('teacherReviewName').value.trim(),code=$('teacherReviewCode').value.trim(),button=$('teacherReviewLoginBtn');
+  if(!name){$('teacherReviewError').textContent='请输入教师姓名。';return}
+  if(!/^\d{8}$/.test(code)){$('teacherReviewError').textContent='请输入8位数字教师登录码。';return}
+  button.disabled=true;button.textContent='正在验证…';$('teacherReviewError').textContent='';
+  try{
+    const data=await teacherAccessApi({action:'login',name:name,code:code});
+    if(!data.session||data.session.role!=='teacher')throw new Error('该姓名和登录码不是教师审核身份。');
+    teacherReviewIdentity=data.session;$('teacherReviewCode').value='';renderTeacherAudit();
+  }catch(error){$('teacherReviewError').textContent=error.message||'教师登录失败，请稍后重试。'}
+  finally{button.disabled=false;button.textContent='进入审核台'}
+};
+$('auditDay').onchange=function(){populateAuditFocusOptions(Number(this.value));$('auditRound').value='1';renderTeacherAudit()};
+$('auditRound').onchange=renderTeacherAudit;
+$('auditFocusTag').onchange=function(){$('auditRound').value='1';renderTeacherAudit()};
+$('auditRegenerate').onclick=function(){auditGeneration++;renderTeacherAudit()};
 document.addEventListener('keydown',function(event){if(event.key!=='Enter'||event.repeat||$('quiz').classList.contains('hidden'))return;const canSubmit=!$('submit').classList.contains('hidden')&&!$('submit').disabled;const canContinue=!$('next').classList.contains('hidden');if(canSubmit){event.preventDefault();$('submit').click()}else if(canContinue){event.preventDefault();$('next').click()}});
-window.__CHEM_QUIZ_TEST__={pools:pools,dayMeta:DAY_META,schedule:SCHEDULE,buildQuestions:buildQuestions,schedulePool:schedulePool,byId:byId,visualFor:visualFor,isScheduleUnlocked:isScheduleUnlocked,localTodayIso:localTodayIso,sessionBelongsToAssessment:sessionBelongsToAssessment};
-setTimeout(autoEnterTrustedStudent,0);
+window.__CHEM_QUIZ_TEST__={pools:pools,dayMeta:DAY_META,schedule:SCHEDULE,buildQuestions:buildQuestions,buildTeacherAuditSequence:buildTeacherAuditSequence,schedulePool:schedulePool,byId:byId,visualFor:visualFor,isScheduleUnlocked:isScheduleUnlocked,localTodayIso:localTodayIso,sessionBelongsToAssessment:sessionBelongsToAssessment};
+setTimeout(function(){if(location.hash==='#teacher-review')openTeacherReview();else autoEnterTrustedStudent()},0);
 </script>
 </body></html>
