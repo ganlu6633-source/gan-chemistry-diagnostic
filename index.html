@@ -193,8 +193,8 @@ function mergeProfiles(local,remote){
   const merged=emptyProfile((remote&&remote.name)||(local&&local.name)||'');
   merged.cls=(local&&local.cls)||(remote&&remote.cls)||'';
   const map=new Map();
-  ((remote&&remote.sessions)||[]).forEach(function(s){s.cloudSynced=true;map.set(sessionIdentity(s),s)});
-  ((local&&local.sessions)||[]).forEach(function(s){if(!map.has(sessionIdentity(s)))map.set(sessionIdentity(s),s)});
+  ((remote&&remote.sessions)||[]).forEach(function(s){const normalized=canonicalSessionRecord(s);normalized.cloudSynced=true;map.set(sessionIdentity(normalized),normalized)});
+  ((local&&local.sessions)||[]).forEach(function(s){const normalized=canonicalSessionRecord(s);if(!map.has(sessionIdentity(normalized)))map.set(sessionIdentity(normalized),normalized)});
   merged.sessions=Array.from(map.values()).sort(function(a,b){return (a.dateMs||0)-(b.dateMs||0)});
   return merged;
 }
@@ -318,6 +318,20 @@ function hash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.char
 function shuffled(list,seed){const a=list.slice();let n=hash(seed);for(let i=a.length-1;i>0;i--){n=(Math.imul(n,1664525)+1013904223)>>>0;const j=n%(i+1);const t=a[i];a[i]=a[j];a[j]=t}return a}
 const LEGACY_AVOGADRO_TOKEN='N'+String.fromCodePoint(0x2090);
 function canonicalChemistryText(text){return String(text).split(LEGACY_AVOGADRO_TOKEN).join('N_A')}
+function canonicalAnswerRecord(answer){
+  if(!answer||typeof answer!=='object')return answer;
+  const normalized=Object.assign({},answer);
+  ['q','mine','correctAnswer','explanation'].forEach(function(key){if(normalized[key]!=null)normalized[key]=canonicalChemistryText(normalized[key])});
+  return normalized;
+}
+function canonicalSessionRecord(session){
+  if(!session||typeof session!=='object')return session;
+  const normalized=Object.assign({},session);if(Array.isArray(normalized.answers))normalized.answers=normalized.answers.map(canonicalAnswerRecord);return normalized;
+}
+function canonicalProfileRecord(profile){
+  if(!profile||typeof profile!=='object')return profile;
+  const normalized=Object.assign({},profile);normalized.sessions=Array.isArray(profile.sessions)?profile.sessions.map(canonicalSessionRecord):[];return normalized;
+}
 function add(day,tag,id,q,correct,distractors,e,visual,level,sourceModel){
   q=canonicalChemistryText(q);correct=canonicalChemistryText(correct);distractors=distractors.map(canonicalChemistryText);e=canonicalChemistryText(e);
   const options=[correct].concat(distractors).filter(function(x,i,a){return a.indexOf(x)===i});
@@ -1355,7 +1369,7 @@ function emptyProfile(name){return {name:name,cls:'',sessions:[]}}
 function loadProfile(name){
   try{
     const current=JSON.parse(localStorage.getItem(storageKey(name)));
-    if(current&&Array.isArray(current.sessions))return current;
+    if(current&&Array.isArray(current.sessions))return canonicalProfileRecord(current);
     const old=JSON.parse(localStorage.getItem('chem-bridge-3day:'+name.trim().toLowerCase()));
     if(old&&Array.isArray(old.days)){
       const migrated=emptyProfile(name);migrated.cls=old.cls||'';
@@ -1365,14 +1379,14 @@ function loadProfile(name){
   }catch(error){}
   return emptyProfile(name);
 }
-function saveProfile(){localStorage.setItem(storageKey(state.name),JSON.stringify(state.profile))}
+function saveProfile(){state.profile=canonicalProfileRecord(state.profile);localStorage.setItem(storageKey(state.name),JSON.stringify(state.profile))}
 function clearQuizCheckpoint(name){
   const owner=String(name||state.name||'');if(owner)localStorage.removeItem(checkpointKey(owner));
 }
 function saveQuizCheckpoint(){
   if(!state.name||!state.quizStart||!Array.isArray(state.questions)||!state.questions.length||!Array.isArray(state.answers))return;
   const meta=SCHEDULE[state.day];if(!meta)return;
-  const payload={version:1,name:normalizedClientName(state.name),day:state.day,round:state.round,assessmentKey:meta.assessmentKey||'',questionIds:state.questions.map(function(q){return q.id}),answers:state.answers,nextIndex:Math.min(state.answers.length,state.questions.length),elapsedSec:Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),adaptiveTags:state.adaptiveTags||[],adaptiveFrom:state.adaptiveFrom||'',mode:state.mode||'standard',sourceSignals:state.sourceSignals||null,repeatMode:!!state.repeatMode,repeatExact:!!state.repeatExact,reviewMode:!!state.reviewMode,minSubmitSec:Number(state.minSubmitSec)||0,savedAt:Date.now()};
+  const payload={version:1,name:normalizedClientName(state.name),day:state.day,round:state.round,assessmentKey:meta.assessmentKey||'',questionIds:state.questions.map(function(q){return q.id}),answers:state.answers.map(canonicalAnswerRecord),nextIndex:Math.min(state.answers.length,state.questions.length),elapsedSec:Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),adaptiveTags:state.adaptiveTags||[],adaptiveFrom:state.adaptiveFrom||'',mode:state.mode||'standard',sourceSignals:state.sourceSignals||null,repeatMode:!!state.repeatMode,repeatExact:!!state.repeatExact,reviewMode:!!state.reviewMode,minSubmitSec:Number(state.minSubmitSec)||0,savedAt:Date.now()};
   localStorage.setItem(checkpointKey(state.name),JSON.stringify(payload));
 }
 function readQuizCheckpoint(){
@@ -1382,7 +1396,7 @@ function readQuizCheckpoint(){
   const meta=SCHEDULE[checkpoint.day],questionIds=Array.isArray(checkpoint.questionIds)?checkpoint.questionIds:[],answers=Array.isArray(checkpoint.answers)?checkpoint.answers:[];
   const valid=checkpoint.version===1&&checkpoint.name===normalizedClientName(state.name)&&meta&&isScheduleUnlocked(meta)&&String(checkpoint.assessmentKey||'')===String(meta.assessmentKey||'')&&Number.isInteger(checkpoint.round)&&checkpoint.round>=1&&questionIds.length===meta.target&&answers.length<=questionIds.length&&Date.now()-Number(checkpoint.savedAt||0)<7*86400000&&questionIds.every(function(id){const q=byId[id];return q&&meta.tags.includes(q.tag)})&&answers.every(function(answer,index){return answer&&answer.id===questionIds[index]});
   if(!valid){clearQuizCheckpoint(state.name);return null}
-  checkpoint.nextIndex=answers.length;return checkpoint;
+  checkpoint.answers=answers.map(canonicalAnswerRecord);checkpoint.nextIndex=answers.length;return checkpoint;
 }
 function resumeQuizCheckpoint(checkpoint){
   const meta=SCHEDULE[checkpoint.day],questions=checkpoint.questionIds.map(function(id){return byId[id]}).filter(Boolean);
@@ -1608,7 +1622,7 @@ function renderTeacherAudit(){
   $('auditQuestionMeta').textContent=meta.title+'｜目标 '+meta.target+' 题｜本轮包含 '+new Set(selected.questions.map(function(q){return q.tag})).size+' 个知识点';
   $('auditQuestionList').innerHTML=selected.questions.length?selected.questions.map(function(q,index){
     const options=q.o.map(function(option,optionIndex){return '<li class="'+(optionIndex===q.a?'correct':'')+'">'+chemistryHtml(escapeAuditHtml(option))+'</li>'}).join('');
-    return '<article class="audit-question"><div class="audit-meta"><span>第'+(index+1)+'题</span><span>'+escapeAuditHtml(q.id)+'</span><span>'+escapeAuditHtml(q.tag)+'</span><span>L'+q.level+'</span><span>'+escapeAuditHtml(q.sourceModel)+'</span></div><h3>'+chemistryHtml(escapeAuditHtml(q.q))+'</h3><ol class="audit-options">'+options+'</ol><div class="audit-answer"><b>正确答案：</b>'+chemistryHtml(escapeAuditHtml(q.o[q.a]))+'<br><b>解析：</b>'+chemistryHtml(escapeAuditHtml(q.e))+'</div></article>';
+    return '<article class="audit-question"><div class="audit-meta"><span>第'+(index+1)+'题</span><span>'+escapeAuditHtml(q.id)+'</span><span>'+escapeAuditHtml(q.tag)+'</span><span>L'+q.level+'</span><span>'+chemistryHtml(escapeAuditHtml(q.sourceModel))+'</span></div><h3>'+chemistryHtml(escapeAuditHtml(q.q))+'</h3><ol class="audit-options">'+options+'</ol><div class="audit-answer"><b>正确答案：</b>'+chemistryHtml(escapeAuditHtml(q.o[q.a]))+'<br><b>解析：</b>'+chemistryHtml(escapeAuditHtml(q.e))+'</div></article>';
   }).join(''):'<div class="audit-empty">本轮没有可预览题目。</div>';
   updateCloudBadge('教师审核 · 只读','online');$('topDay').textContent='第1—5轮审核';show('teacherAudit');loadReviewActivity(false);
 }
@@ -1796,7 +1810,7 @@ async function syncCompletedResult(result,habitText,difficultyText){
   if(!state.syncToken){updateCloudBadge('等待联网保存','wait');return}
   updateCloudBadge('正在保存…','wait');
   try{
-    const data=await cloudApi({action:'save_session',name:state.name,token:state.syncToken,session:Object.assign({},result,{trainingTheme:SCHEDULE[result.day].title,schoolClass:state.cls,habitSignal:habitText,difficultySignal:difficultyText})});
+    const data=await cloudApi({action:'save_session',name:state.name,token:state.syncToken,session:canonicalSessionRecord(Object.assign({},result,{trainingTheme:SCHEDULE[result.day].title,schoolClass:state.cls,habitSignal:habitText,difficultySignal:difficultyText}))});
     result.cloudSynced=true;
     state.profile=mergeProfiles(state.profile,data.profile);state.profile.cls=state.cls||state.profile.cls;saveProfile();
     updateCloudBadge('记录已按姓名保存','online');
@@ -1808,7 +1822,7 @@ async function flushPendingSessions(){
   const pending=state.profile.sessions.filter(function(s){return s.cloudSynced===false&&Array.isArray(s.answers)&&s.answers.length===s.total});
   for(const s of pending){
     try{
-      const data=await cloudApi({action:'save_session',name:state.name,token:state.syncToken,session:Object.assign({},s,{trainingTheme:SCHEDULE[s.day]?SCHEDULE[s.day].title:'',schoolClass:state.cls})});
+      const data=await cloudApi({action:'save_session',name:state.name,token:state.syncToken,session:canonicalSessionRecord(Object.assign({},s,{trainingTheme:SCHEDULE[s.day]?SCHEDULE[s.day].title:'',schoolClass:state.cls}))});
       s.cloudSynced=true;state.profile=mergeProfiles(state.profile,data.profile);
     }catch(error){break}
   }
