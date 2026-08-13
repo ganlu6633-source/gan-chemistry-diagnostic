@@ -1654,7 +1654,7 @@ function sessionBelongsToAssessment(session,day,key){
   const prefix=meta.assessmentPrefix||'';return !!prefix&&Array.isArray(session.answers)&&session.answers.some(function(a){return String(a&&a.id||'').startsWith(prefix)});
 }
 function sessionsFor(day,key){return state.profile.sessions.filter(function(s){return sessionBelongsToAssessment(s,day,key)}).sort(function(a,b){return a.round-b.round||(a.dateMs||0)-(b.dateMs||0)})}
-function latestSession(day){const list=sessionsFor(day);return list[list.length-1]||null}
+function latestSession(day,key){const list=sessionsFor(day,key);return list[list.length-1]||null}
 function isRetiredLegacyAnswer(answer){
   const question=String(answer&&answer.q||'');
   return answer&&((answer.id==='D5-OC-C-0'&&question.includes('Na₂O按组成分类，属于？'))||(answer.id==='D5-M-4'&&question.includes('钠盐、碳酸盐、酸式盐')));
@@ -1869,7 +1869,7 @@ function buildRedoxLadderRound(round){
     if(!fresh.length)fresh=pool.filter(function(q){return q.tag===tag&&!used.has(q.id)&&!chosen.some(function(x){return x.id===q.id})}).sort(function(a,b){return Math.abs(a.level-progress.level)-Math.abs(b.level-progress.level)});
     const picked=shuffled(fresh.length?fresh:candidates,state.name+'-redox-'+round+'-'+i+'-'+tag)[0];if(!picked)throw new Error(tag+'的未做同型题不足，请联系老师补充题库。');chosen.push(picked);
   }
-  return {questions:chosen,tags:focus,source:latestSession(15),mode:'challenge',signals:sessionSignals(latestSession(15)),repeatExact:false,redoxLadder:true};
+  const redoxSource=latestSession(15,REDOX_ASSESSMENT_KEY);return {questions:chosen,tags:focus,source:redoxSource,mode:'challenge',signals:sessionSignals(redoxSource),repeatExact:false,redoxLadder:true};
 }
 function prepareRedoxQuestion(){
   if(!state.redoxMode||state.round<2||state.i>=state.questions.length)return;
