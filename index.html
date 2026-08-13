@@ -20,7 +20,7 @@
 </style>
 </head>
 <body><main class="shell">
-<div class="top"><div class="brand">⚗ 甘老师化学 · 初高衔接</div><div class="row"><button id="teacherReviewEntry" class="btn secondary teacher-entry" type="button">教师审核</button><span id="cloudBadge" class="cloud-badge">未验证姓名</span><div id="topDay" class="day-pill">从8月3日开始</div></div></div>
+<div class="top"><div class="brand">⚗ 甘老师化学 · 初高衔接</div><div class="row"><button id="teacherReviewEntry" class="btn secondary teacher-entry hidden" type="button">教师审核</button><span id="cloudBadge" class="cloud-badge">未验证姓名</span><div id="topDay" class="day-pill">从8月3日开始</div></div></div>
 
 <section id="start" class="panel">
   <p class="eyebrow">DIAGNOSE · PRACTISE · TRANSFER</p>
@@ -129,7 +129,6 @@
 </section>
 
 <section id="report" class="panel hidden">
-  <div class="report-tabs"><button id="studentTab" class="btn active">学生报告</button><button id="teacherTab" class="btn secondary">教师反馈</button></div>
   <div id="studentPanel">
   <div class="share-wrap"><div id="shareCard" class="share-card">
     <div class="share-head"><div><small>初高衔接 · 学习日历自适应训练</small><h2 id="shareName"></h2><div id="shareMeta"></div></div><div class="score-orb"><b id="shareScore"></b><small>正确率</small></div></div>
@@ -144,13 +143,13 @@
       <p class="screenshot-tip">截取这张卡片即可让老师看清本轮缺漏和下一步训练。</p>
     </div>
   </div></div></div>
-  <div id="teacherPanel" class="teacher-panel hidden">
+  <div id="teacherPanel" class="teacher-panel hidden" aria-hidden="true">
     <div class="teacher-grid">
       <div class="teacher-card"><b>本轮证据</b><p id="teacherEvidence"></p></div>
       <div class="teacher-card"><b>作答习惯信号</b><p id="habitSignal"></p></div>
       <div class="teacher-card"><b>难度判断</b><p id="difficultySignal"></p></div>
     </div>
-    <div class="teacher-card"><b>家校沟通建议</b><div id="familyFeedback" class="family-copy"></div></div>
+    <div class="teacher-card"><b>后续学习建议</b><div id="familyFeedback" class="family-copy"></div></div>
   </div>
   <details class="details"><summary>展开完整错题、长时题与可复制反馈</summary><div id="detailList"></div><div id="copyText" class="copy"></div><div class="row" style="margin:12px 0"><button id="copy" class="btn secondary">复制完整记录</button></div></details>
   <div class="row" style="margin-top:17px"><button id="sameDay" class="btn primary"></button><button id="nextDay" class="btn secondary"></button><button id="reportDashboard" class="btn secondary">返回训练中心</button></div>
@@ -194,7 +193,7 @@ function mergeProfiles(local,remote){
   merged.cls=(local&&local.cls)||(remote&&remote.cls)||'';
   const map=new Map();
   ((remote&&remote.sessions)||[]).forEach(function(s){const normalized=canonicalSessionRecord(s);normalized.cloudSynced=true;map.set(sessionIdentity(normalized),normalized)});
-  ((local&&local.sessions)||[]).forEach(function(s){const normalized=canonicalSessionRecord(s);if(!map.has(sessionIdentity(normalized)))map.set(sessionIdentity(normalized),normalized)});
+  ((local&&local.sessions)||[]).forEach(function(s){const normalized=canonicalSessionRecord(s),key=sessionIdentity(normalized),existing=map.get(key);if(!existing)map.set(key,normalized);else if(Array.isArray(normalized.answers)&&Array.isArray(existing.answers)){existing.answers=existing.answers.map(function(answer,index){return Object.assign({},normalized.answers[index]||{},answer)});map.set(key,existing)}});
   merged.sessions=Array.from(map.values()).sort(function(a,b){return (a.dateMs||0)-(b.dateMs||0)});
   return merged;
 }
@@ -273,6 +272,12 @@ const DAY_META={
 };
 const MOLE_BASICS_UNLOCK_AT='2026-08-12T10:00:00+08:00';
 const GAS_MOLAR_UNLOCK_AT='2026-08-13T12:00:00+08:00';
+const RAPID_LADDER_POLICY='two-correct-original-ladder-v1';
+const RAPID_LADDER_NAME_SALT='rapid-ladder-v1|';
+const RAPID_LADDER_STUDENT_HASHES=new Set([4237777698,2327551631,1680020325]);
+const RAPID_LADDER_CALC_TAGS=new Set(['气体体积影响因素','气体摩尔体积概念','标准状况','标况物态判断','气体摩尔体积适用范围','气体体积与物质的量','气体体积与粒子数','气体体积与质量','阿伏加德罗定律','同温同压气体比例','同温同容气体比例','等质量同温同容气体比较','气体密度与摩尔质量','等质量气体比较','等体积气体比较','标况密度求摩尔质量','混合气体平均摩尔质量']);
+const RAPID_LADDER_L4_TAGS=new Set(['同温同压气体比例','同温同容气体比例','气体密度与摩尔质量','等质量气体比较','等体积气体比较','等质量同温同容气体比较','标况密度求摩尔质量','混合气体平均摩尔质量']);
+const RAPID_LADDER_L3_TAGS=new Set(['气体体积与粒子数','气体体积与质量','阿伏加德罗定律']);
 const MOLE_CALCULATION_DIAGNOSTIC_TAGS=['粒子数计算','指定微粒计数','摩尔质量计算','质量与物质的量','物质的量计算','质量粒子数综合','物质的量综合','样品比较计算'];
 const GAS_MOLAR_DIAGNOSTIC_TAGS=['气体体积影响因素','气体摩尔体积概念','标准状况','标况物态判断','气体摩尔体积适用范围','气体体积与物质的量','气体体积与粒子数','气体体积与质量','阿伏加德罗定律','同温同压气体比例','同温同容气体比例','等质量同温同容气体比较','气体密度与摩尔质量','等质量气体比较','等体积气体比较','标况密度求摩尔质量','混合气体平均摩尔质量'];
 const SCHEDULE={
@@ -338,7 +343,8 @@ function add(day,tag,id,q,correct,distractors,e,visual,level,sourceModel){
   if(options.length!==4)throw new Error('选项数量错误：'+id);
   const ordered=shuffled(options,id);
   const defaultLevel=day===1?1:2;
-  pools[day].push({id:id,day:day,tag:tag,q:q,o:ordered,a:ordered.indexOf(correct),e:e,visual:visual||'',level:level||defaultLevel,sourceModel:sourceModel||'原创基础变式'});
+  const question={id:id,day:day,tag:tag,q:q,o:ordered,a:ordered.indexOf(correct),e:e,visual:visual||'',level:level||defaultLevel,sourceModel:sourceModel||'原创基础变式'};
+  pools[day].push(question);return question;
 }
 function rotateOther(list,item,count){const start=list.indexOf(item);const out=[];for(let i=1;out.length<count;i++){const value=list[(start+i)%list.length];if(value!==item&&!out.includes(value))out.push(value)}return out}
 
@@ -1072,7 +1078,7 @@ moleEntities.forEach(function(entity,i){
   add(10,'物质的量概念','MOL-R-'+String(i+1).padStart(3,'0'),'若两份样品所含的'+entity+'数目之比为1∶2，则它们的物质的量之比为？','1∶2',['2∶1','1∶1','1∶4'],'同种指定微粒的物质的量之比等于粒子数之比。','mole',2,'物质的量入门原创变式');
 });
 
-// 8月12日10:00开放：苏教版“气体摩尔体积”讲义的同型变式题库。
+// 8月13日12:00开放：苏教版“气体摩尔体积”讲义的同型变式题库。
 // 首轮固定覆盖17个诊断标签；后续轮按错题与单题停留≥45秒的标签优先抽取未做变式。
 function integerGcd(a,b){a=Math.abs(Math.round(a));b=Math.abs(Math.round(b));while(b){const t=a%b;a=b;b=t}return a||1}
 function ratioText(a,b){const scale=(Number.isInteger(a)&&Number.isInteger(b))?integerGcd(a,b):1;return cleanNumber(a/scale)+'∶'+cleanNumber(b/scale)}
@@ -1284,6 +1290,45 @@ addMoleApplication('样品比较计算','COMPARE-010','0.25 mol CaCO₃所含O�
 addMoleApplication('样品比较计算','COMPARE-011','0.5N_A个NH₃分子所含H原子数，与多少克CH₄所含H原子数相同？','6 g',numberOptions(6,'g'),'0.5 mol NH₃含1.5 mol H原子；需要0.375 mol CH₄才能含1.5 mol H原子，质量为0.375×16=6 g。',4);
 addMoleApplication('样品比较计算','COMPARE-012','某Al₂O₃样品中含0.4N_A个Al原子，该样品的质量为多少？（M(Al₂O₃)=102 g·mol⁻¹）','20.4 g',numberOptions(20.4,'g'),'每个Al₂O₃化学式单位含2个Al原子，因此样品为0.2 mol Al₂O₃，质量为0.2×102=20.4 g。',4);
 
+// 8月13日指定学生快速分层：先做已逐题核过答案的讲义原题/原题拆分，再接同型高阶新题。
+function addGmvOriginal(level,tag,id,q,correct,distractors,e,originRef){
+  const question=add(11,tag,id,q,correct,distractors,e,'mole',level,'苏教版气体摩尔体积讲义原题 · '+originRef);
+  question.original=true;question.sourceKind='handout_original';question.originRef=originRef;question.ladderOnly=true;return question;
+}
+addGmvOriginal(1,'气体体积与物质的量','GMV-ORIG-CALC-L1-001','标准状况下，2 mol O₂所占的体积约为？','44.8 L',['2.24 L','4.48 L','22.4 L'],'标准状况下Vₘ≈22.4 L·mol⁻¹，所以V=nVₘ=2 mol×22.4 L·mol⁻¹=44.8 L。','随学随练3');
+addGmvOriginal(1,'气体体积与物质的量','GMV-ORIG-CALC-L1-002','标准状况下，3.36 L CO的物质的量为？','0.15 mol',['0.10 mol','0.20 mol','1.5 mol'],'n=V/Vₘ=3.36 L÷22.4 L·mol⁻¹=0.15 mol。','基础通关6拆题');
+addGmvOriginal(1,'气体体积与物质的量','GMV-ORIG-CALC-L1-003','标准状况下，0.4 mol H₂的体积约为？','8.96 L',['4.48 L','11.2 L','17.92 L'],'V=nVₘ=0.4 mol×22.4 L·mol⁻¹=8.96 L。','基础通关6拆题');
+addGmvOriginal(1,'气体体积与粒子数','GMV-ORIG-CALC-L1-004','标准状况下，11.2 L H₂中含有的H₂分子数约为？','0.5N_A个',['N_A个','2N_A个','0.25N_A个'],'11.2 L H₂为0.5 mol，因此含有约0.5N_A个H₂分子。','基础通关5拆题');
+addGmvOriginal(2,'气体摩尔体积概念','GMV-ORIG-CALC-L2-001','某条件下，16 g O₂所占的体积为12 L，则该条件下的气体摩尔体积为？','24 L·mol⁻¹',['12 L·mol⁻¹','22.4 L·mol⁻¹','48 L·mol⁻¹'],'16 g O₂为0.5 mol，Vₘ=V/n=12 L÷0.5 mol=24 L·mol⁻¹。','迁移创新3(1)');
+addGmvOriginal(2,'气体摩尔体积适用范围','GMV-ORIG-CALC-L2-002','28 g CO和N₂的混合气体在标准状况下的总体积约为？','22.4 L',['11.2 L','33.6 L','44.8 L'],'CO和N₂的摩尔质量都为28 g·mol⁻¹，28 g混合气体总物质的量为1 mol，标况体积约22.4 L。','基础通关6拆题');
+addGmvOriginal(2,'气体体积与粒子数','GMV-ORIG-CALC-L2-003','标准状况下，含0.5N_A个H₂分子的氢气体积约为？','11.2 L',['5.6 L','22.4 L','44.8 L'],'0.5N_A个H₂分子对应0.5 mol H₂，标况体积约为0.5×22.4 L=11.2 L。','基础通关5拆题');
+addGmvOriginal(3,'等质量气体比较','GMV-ORIG-APPLY-L3-001','等质量的NH₃和H₂S所含分子数之比为？','2∶1',['1∶2','1∶1','3∶2'],'分子数之比等于物质的量之比；等质量时n与M成反比，所以n(NH₃)∶n(H₂S)=34∶17=2∶1。','迁移创新3(2)');
+addGmvOriginal(3,'等质量气体比较','GMV-ORIG-APPLY-L3-002','若NH₃和H₂S中所含H原子数相等，则NH₃和H₂S的质量之比为？','1∶3',['3∶1','2∶3','3∶2'],'设NH₃、H₂S的物质的量分别为x、y，则3x=2y；质量比17x∶34y=1∶3。','迁移创新3(2)');
+addGmvOriginal(3,'气体密度与摩尔质量','GMV-ORIG-APPLY-L3-003','同温同压下，NH₃和H₂S的密度之比为？','1∶2',['2∶1','1∶1','17∶2'],'同温同压下ρ₁/ρ₂=M₁/M₂=17∶34=1∶2。','迁移创新3(2)');
+addGmvOriginal(3,'等体积气体比较','GMV-ORIG-APPLY-L3-004','同温同压下，相同体积的CO和CO₂相比较，下列说法正确的是？','质量之比为7∶11',['分子个数之比为2∶3','密度之比为11∶7','所含O原子个数比为1∶1'],'等体积时物质的量相同，质量比等于摩尔质量比28∶44=7∶11。','活学活用1');
+addGmvOriginal(3,'气体体积与质量','GMV-ORIG-APPLY-L3-005','标准状况下，下列各份气体样品所占体积最大的是？','32 g CH₄',['3 g H₂','N_A个CO₂分子','22.4 L CO₂'],'32 g CH₄为2 mol，标况体积约44.8 L；3 g H₂为1.5 mol，N_A个CO₂分子和22.4 L CO₂均约为1 mol。','迁移创新3(3)改编');
+addGmvOriginal(4,'气体体积与粒子数','GMV-ORIG-COMPREHENSIVE-L4-001','标准状况下：①6.72 L NH₃；②1.204×10²³个H₂S分子；③5.6 g CH₄；④0.5 mol HCl。下列关系正确的是？','体积大小：④＞③＞①＞②',['原子数目：③＞①＞②＞④','密度大小：④＞②＞③＞①','质量大小：④＞③＞②＞①'],'四者物质的量依次约为0.3 mol、0.2 mol、0.35 mol、0.5 mol；同温同压下体积随物质的量增大，因此④＞③＞①＞②。','素养提升4');
+addGmvOriginal(4,'气体密度与摩尔质量','GMV-ORIG-COMPREHENSIVE-L4-002','两个密闭容器分别装有质量相等的甲、乙两种气体，二者温度和密度均相同。下列判断正确的是？','若M(甲)＞M(乙)，则气体摩尔体积：甲＞乙',['若M(甲)＜M(乙)，则分子数：甲＜乙','若M(甲)＜M(乙)，则气体压强：甲＜乙','若M(甲)＞M(乙)，则气体体积：甲＞乙'],'质量、密度相同，所以体积相同；M(甲)＞M(乙)时n(甲)＜n(乙)，由Vₘ=V/n知Vₘ(甲)＞Vₘ(乙)。','素养提升5');
+addGmvOriginal(4,'阿伏加德罗定律','GMV-ORIG-COMPREHENSIVE-L4-003','判断下列叙述：①标况下1 L HCl与1 L H₂O的物质的量相同；②标况下1 g H₂和14 g N₂的体积相同；③28 g CO的体积为22.4 L；④任意两种物质的物质的量相同，则标况下体积也相同；⑤同温、同体积时，气体物质的量越大，压强越大。正确的是？','②⑤',['①③④','④⑤','①⑤'],'②中两种气体均为0.5 mol，体积相同；⑤中同温同体积时p与n成正比。①、④忽略物态，③缺少标况条件。','素养提升6改编');
+addGmvOriginal(4,'混合气体平均摩尔质量','GMV-ORIG-COMPREHENSIVE-L4-004','某条件下16 g O₂体积为12 L；另取等质量NH₃和H₂S。下列四项结果依次正确的是：该条件Vₘ、两气体分子数之比、含H原子数相等时质量之比、同温同压密度之比？','24 L·mol⁻¹；2∶1；1∶3；1∶2',['12 L·mol⁻¹；1∶2；3∶1；2∶1','24 L·mol⁻¹；1∶2；2∶3；1∶2','22.4 L·mol⁻¹；2∶1；1∶3；2∶1'],'依次用Vₘ=V/n、等质量时n与M成反比、H原子守恒及同温同压ρ与M成正比计算。','迁移创新3综合');
+gmvPairs.forEach(function(pair,i){
+  const a=pair[0],b=pair[1],volumeRatio=ratioText(b[1],a[1]),densityRatio=ratioText(a[1],b[1]),correct='V₁∶V₂='+volumeRatio+'；ρ₁∶ρ₂='+densityRatio;
+  add(11,'等质量气体比较','GMV-L4-PAIR-'+String(i+1).padStart(3,'0'),'同温同压下，取等质量的'+a[0]+'（气体1）和'+b[0]+'（气体2）。其体积比与密度比依次为？',correct,['V₁∶V₂='+densityRatio+'；ρ₁∶ρ₂='+volumeRatio,'V₁∶V₂='+densityRatio+'；ρ₁∶ρ₂='+densityRatio,'V₁∶V₂=1∶1；ρ₁∶ρ₂='+densityRatio],'等质量时n与M成反比，同温同压下V与n成正比、ρ与M成正比，所以V₁/V₂=M₂/M₁，ρ₁/ρ₂=M₁/M₂。','mole',4,'原创L4双关系应用变式');
+  add(11,'等质量气体比较','GMV-L4-PAIR-N-'+String(i+1).padStart(3,'0'),'同温同压下，取等质量的'+a[0]+'（气体1）和'+b[0]+'（气体2）。其物质的量比、体积比和密度比依次为？','n₁∶n₂='+volumeRatio+'；V₁∶V₂='+volumeRatio+'；ρ₁∶ρ₂='+densityRatio,['n₁∶n₂='+densityRatio+'；V₁∶V₂='+densityRatio+'；ρ₁∶ρ₂='+volumeRatio,'n₁∶n₂='+volumeRatio+'；V₁∶V₂='+densityRatio+'；ρ₁∶ρ₂='+densityRatio,'n₁∶n₂=1∶1；V₁∶V₂='+volumeRatio+'；ρ₁∶ρ₂='+volumeRatio],'等质量时n₁/n₂=M₂/M₁；同温同压下V₁/V₂=n₁/n₂，而ρ₁/ρ₂=M₁/M₂。','mole',4,'原创L4三关系应用变式');
+  add(11,'等体积气体比较','GMV-L4-EQVOL-'+String(i+1).padStart(3,'0'),'同温同压下，取等体积的'+a[0]+'（气体1）和'+b[0]+'（气体2）。其物质的量比、质量比和密度比依次为？','n₁∶n₂=1∶1；m₁∶m₂='+densityRatio+'；ρ₁∶ρ₂='+densityRatio,['n₁∶n₂='+densityRatio+'；m₁∶m₂='+volumeRatio+'；ρ₁∶ρ₂='+volumeRatio,'n₁∶n₂=1∶1；m₁∶m₂='+volumeRatio+'；ρ₁∶ρ₂='+densityRatio,'n₁∶n₂='+volumeRatio+'；m₁∶m₂='+densityRatio+'；ρ₁∶ρ₂=1∶1'],'同温同压等体积时n相同；m=nM且ρ=m/V，所以质量比和密度比都等于摩尔质量比M₁/M₂。','mole',4,'原创L4等体积三关系应用变式');
+  add(11,'等质量同温同容气体比较','GMV-L4-PRESSURE-'+String(i+1).padStart(3,'0'),'同温同体积下，取等质量的'+a[0]+'（气体1）和'+b[0]+'（气体2）。其压强比和气体微粒数之比依次为？','p₁∶p₂='+volumeRatio+'；N₁∶N₂='+volumeRatio,['p₁∶p₂='+densityRatio+'；N₁∶N₂='+densityRatio,'p₁∶p₂='+volumeRatio+'；N₁∶N₂='+densityRatio,'p₁∶p₂='+densityRatio+'；N₁∶N₂='+volumeRatio],'等质量时n₁/n₂=M₂/M₁；同温同容下p与n成正比，微粒数也与n成正比。','mole',4,'原创L4同温同容综合应用变式');
+  const moreParticles=a[1]<b[1]?'气体1':'气体2';
+  add(11,'等质量气体比较','GMV-L4-JUDGE-'+String(i+1).padStart(3,'0'),'同温同压下，取等质量的'+a[0]+'（气体1）和'+b[0]+'（气体2）。下列“体积比；气体微粒数更多者”的组合正确的是？','V₁∶V₂='+volumeRatio+'；'+moreParticles,['V₁∶V₂='+densityRatio+'；'+moreParticles,'V₁∶V₂='+volumeRatio+'；'+(moreParticles==='气体1'?'气体2':'气体1'),'V₁∶V₂=1∶1；两者一样多'],'等质量时摩尔质量较小者的物质的量、体积和气体微粒数都较大；V₁/V₂=M₂/M₁。','mole',4,'原创L4等质量判断应用变式');
+});
+gasMixCases.forEach(function(x,i){
+  const average=x[6],relative=Math.round(average/2*1000)/1000,correct=cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(relative);
+  add(11,'混合气体平均摩尔质量','GMV-L4-MIX-'+String(i+1).padStart(3,'0'),x[0]+'与'+x[2]+'按物质的量之比'+ratioText(x[4],x[5])+'组成不反应混合气体。其平均摩尔质量及对H₂的相对密度依次为？',correct,[cleanNumber(relative)+' g·mol⁻¹；'+cleanNumber(average),cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(average),cleanNumber(average*2)+' g·mol⁻¹；'+cleanNumber(relative)],'先按物质的量加权求平均摩尔质量M̄='+cleanNumber(average)+' g·mol⁻¹，再用D=M̄/M(H₂)='+cleanNumber(average)+'÷2='+cleanNumber(relative)+'。','mole',4,'原创L4混合气体综合应用变式');
+  const totalN=i%2===0?2:4,totalMass=Math.round(totalN*average*1000)/1000,totalVolume=Math.round(totalN*22.4*1000)/1000;
+  add(11,'混合气体平均摩尔质量','GMV-L4-MIX-M-'+String(i+1).padStart(3,'0'),x[0]+'与'+x[2]+'按物质的量之比'+ratioText(x[4],x[5])+'组成不反应混合气体。若混合气体共'+totalN+' mol，其平均摩尔质量和总质量依次为？',cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(totalMass)+' g',[cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(totalMass/2)+' g',cleanNumber(totalMass)+' g·mol⁻¹；'+cleanNumber(average)+' g',cleanNumber(average*2)+' g·mol⁻¹；'+cleanNumber(totalMass)+' g'],'先按组成求M̄='+cleanNumber(average)+' g·mol⁻¹，再用m=nM̄='+totalN+' mol×'+cleanNumber(average)+' g·mol⁻¹='+cleanNumber(totalMass)+' g。','mole',4,'原创L4平均摩尔质量与总质量变式');
+  add(11,'混合气体平均摩尔质量','GMV-L4-MIX-V-'+String(i+1).padStart(3,'0'),x[0]+'与'+x[2]+'按物质的量之比'+ratioText(x[4],x[5])+'组成不反应混合气体。若混合气体共'+totalN+' mol，标准状况下其平均摩尔质量和总体积依次为？',cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(totalVolume)+' L',[cleanNumber(average)+' g·mol⁻¹；'+cleanNumber(totalVolume/2)+' L',cleanNumber(totalVolume)+' g·mol⁻¹；'+cleanNumber(average)+' L',cleanNumber(average*2)+' g·mol⁻¹；'+cleanNumber(totalVolume)+' L'],'先按组成求M̄='+cleanNumber(average)+' g·mol⁻¹；标准状况下总体积只由总物质的量决定，V='+totalN+'×22.4 L='+cleanNumber(totalVolume)+' L。','mole',4,'原创L4平均摩尔质量与总体积变式');
+});
+pools[11].forEach(function(question){if(/^GMV-L4-/.test(question.id)){question.ladderOnly=true;question.sourceKind='rapid_ladder_variant'}});
+
 const diagnosis={
   '离子识别':'离子名称、组成和右上角电荷还没有形成稳定对应。',
   '酸碱盐分类':'没有先抓住电离产生的离子或物质的离子组成。',
@@ -1357,7 +1402,7 @@ const allQuestions=Object.values(pools).flat();
 const byId=Object.fromEntries(allQuestions.map(function(q){return [q.id,q]}));
 const storageKey=function(name){return 'chem-bridge-5round:'+name.trim().toLowerCase()};
 const checkpointKey=function(name){return 'chem-bridge-checkpoint-v1:'+normalizedClientName(name)};
-let state={name:'',cls:'',profile:null,syncToken:'',syncing:false,day:1,round:1,questions:[],adaptiveTags:[],adaptiveFrom:'',mode:'standard',sourceSignals:null,reviewMode:false,minSubmitSec:0,repeatMode:false,repeatExact:false,i:0,qStart:0,quizStart:0,answers:[],timerId:null};
+let state={name:'',cls:'',profile:null,syncToken:'',syncing:false,day:1,round:1,questions:[],adaptiveTags:[],adaptiveFrom:'',mode:'standard',sourceSignals:null,reviewMode:false,minSubmitSec:0,repeatMode:false,repeatExact:false,ladderDiagnostic:false,ladderMode:false,ladderFocusTags:[],ladderStartLevel:1,ladderLevel:1,ladderCorrectAtLevel:0,i:0,qStart:0,quizStart:0,answers:[],timerId:null};
 let auditGeneration=0;
 let teacherReviewIdentity=null;
 let reviewActivityCache=null;
@@ -1386,7 +1431,7 @@ function clearQuizCheckpoint(name){
 function saveQuizCheckpoint(){
   if(!state.name||!state.quizStart||!Array.isArray(state.questions)||!state.questions.length||!Array.isArray(state.answers))return;
   const meta=SCHEDULE[state.day];if(!meta)return;
-  const payload={version:1,name:normalizedClientName(state.name),day:state.day,round:state.round,assessmentKey:meta.assessmentKey||'',questionIds:state.questions.map(function(q){return q.id}),answers:state.answers.map(canonicalAnswerRecord),nextIndex:Math.min(state.answers.length,state.questions.length),elapsedSec:Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),adaptiveTags:state.adaptiveTags||[],adaptiveFrom:state.adaptiveFrom||'',mode:state.mode||'standard',sourceSignals:state.sourceSignals||null,repeatMode:!!state.repeatMode,repeatExact:!!state.repeatExact,reviewMode:!!state.reviewMode,minSubmitSec:Number(state.minSubmitSec)||0,savedAt:Date.now()};
+  const payload={version:1,name:normalizedClientName(state.name),day:state.day,round:state.round,assessmentKey:meta.assessmentKey||'',questionIds:state.questions.map(function(q){return q.id}),answers:state.answers.map(canonicalAnswerRecord),nextIndex:Math.min(state.answers.length,state.questions.length),elapsedSec:Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),adaptiveTags:state.adaptiveTags||[],adaptiveFrom:state.adaptiveFrom||'',mode:state.mode||'standard',sourceSignals:state.sourceSignals||null,repeatMode:!!state.repeatMode,repeatExact:!!state.repeatExact,reviewMode:!!state.reviewMode,minSubmitSec:Number(state.minSubmitSec)||0,ladderDiagnostic:!!state.ladderDiagnostic,ladderMode:!!state.ladderMode,adaptivePolicy:state.ladderMode?RAPID_LADDER_POLICY:'',ladderFocusTags:state.ladderFocusTags||[],ladderStartLevel:Number(state.ladderStartLevel)||1,ladderLevel:Number(state.ladderLevel)||1,ladderCorrectAtLevel:Number(state.ladderCorrectAtLevel)||0,savedAt:Date.now()};
   localStorage.setItem(checkpointKey(state.name),JSON.stringify(payload));
 }
 function readQuizCheckpoint(){
@@ -1394,16 +1439,19 @@ function readQuizCheckpoint(){
   let checkpoint=null;try{checkpoint=JSON.parse(localStorage.getItem(checkpointKey(state.name))||'null')}catch(error){clearQuizCheckpoint(state.name);return null}
   if(!checkpoint)return null;
   const meta=SCHEDULE[checkpoint.day],questionIds=Array.isArray(checkpoint.questionIds)?checkpoint.questionIds:[],answers=Array.isArray(checkpoint.answers)?checkpoint.answers:[];
-  const valid=checkpoint.version===1&&checkpoint.name===normalizedClientName(state.name)&&meta&&isScheduleUnlocked(meta)&&String(checkpoint.assessmentKey||'')===String(meta.assessmentKey||'')&&Number.isInteger(checkpoint.round)&&checkpoint.round>=1&&questionIds.length===meta.target&&answers.length<=questionIds.length&&Date.now()-Number(checkpoint.savedAt||0)<7*86400000&&questionIds.every(function(id){const q=byId[id];return q&&meta.tags.includes(q.tag)})&&answers.every(function(answer,index){return answer&&answer.id===questionIds[index]});
+  const targetedDay=isRapidLadderStudent(state.name,checkpoint.day),expectedDiagnostic=targetedDay&&Number(checkpoint.round)===1,expectedLadder=targetedDay&&Number(checkpoint.round)>=2;
+  const policyValid=(!expectedDiagnostic||checkpoint.ladderDiagnostic===true)&&(!expectedLadder||(checkpoint.ladderMode===true&&checkpoint.adaptivePolicy===RAPID_LADDER_POLICY&&Number(checkpoint.ladderLevel)>=1&&Number(checkpoint.ladderLevel)<=4&&Number(checkpoint.ladderCorrectAtLevel)>=0&&Number(checkpoint.ladderCorrectAtLevel)<=2));
+  const valid=checkpoint.version===1&&checkpoint.name===normalizedClientName(state.name)&&meta&&isScheduleUnlocked(meta)&&String(checkpoint.assessmentKey||'')===String(meta.assessmentKey||'')&&Number.isInteger(checkpoint.round)&&checkpoint.round>=1&&questionIds.length===meta.target&&answers.length<=questionIds.length&&Date.now()-Number(checkpoint.savedAt||0)<7*86400000&&questionIds.every(function(id){const q=byId[id];return q&&meta.tags.includes(q.tag)})&&answers.every(function(answer,index){return answer&&answer.id===questionIds[index]})&&policyValid;
   if(!valid){clearQuizCheckpoint(state.name);return null}
+  if(checkpoint.ladderMode&&!isRapidLadderStudent(state.name,checkpoint.day)){clearQuizCheckpoint(state.name);return null}
   checkpoint.answers=answers.map(canonicalAnswerRecord);checkpoint.nextIndex=answers.length;return checkpoint;
 }
 function resumeQuizCheckpoint(checkpoint){
   const meta=SCHEDULE[checkpoint.day],questions=checkpoint.questionIds.map(function(id){return byId[id]}).filter(Boolean);
   if(!meta||questions.length!==checkpoint.questionIds.length){clearQuizCheckpoint(state.name);return}
-  state.day=checkpoint.day;state.round=checkpoint.round;state.questions=questions;state.answers=checkpoint.answers;state.i=checkpoint.nextIndex;state.adaptiveTags=checkpoint.adaptiveTags||[];state.adaptiveFrom=checkpoint.adaptiveFrom||'';state.mode=checkpoint.mode||'standard';state.sourceSignals=checkpoint.sourceSignals||null;state.repeatMode=!!checkpoint.repeatMode;state.repeatExact=!!checkpoint.repeatExact;state.reviewMode=!!checkpoint.reviewMode;state.minSubmitSec=Number(checkpoint.minSubmitSec)||0;state.quizStart=Date.now()-Math.max(1,Number(checkpoint.elapsedSec)||1)*1000;
+  state.day=checkpoint.day;state.round=checkpoint.round;state.questions=questions;state.answers=checkpoint.answers;state.i=checkpoint.nextIndex;state.adaptiveTags=checkpoint.adaptiveTags||[];state.adaptiveFrom=checkpoint.adaptiveFrom||'';state.mode=checkpoint.mode||'standard';state.sourceSignals=checkpoint.sourceSignals||null;state.repeatMode=!!checkpoint.repeatMode;state.repeatExact=!!checkpoint.repeatExact;state.reviewMode=!!checkpoint.reviewMode;state.minSubmitSec=Number(checkpoint.minSubmitSec)||0;state.ladderDiagnostic=!!checkpoint.ladderDiagnostic&&isRapidLadderStudent(state.name,checkpoint.day);state.ladderMode=!!checkpoint.ladderMode&&isRapidLadderStudent(state.name,checkpoint.day);state.ladderFocusTags=Array.isArray(checkpoint.ladderFocusTags)?checkpoint.ladderFocusTags:[];state.ladderStartLevel=Number(checkpoint.ladderStartLevel)||1;state.ladderLevel=Number(checkpoint.ladderLevel)||1;state.ladderCorrectAtLevel=Number(checkpoint.ladderCorrectAtLevel)||0;state.quizStart=Date.now()-Math.max(1,Number(checkpoint.elapsedSec)||1)*1000;
   $('topDay').textContent=dateWithWeek(meta)+' · 第'+state.round+'轮 · 续答';
-  show('quiz');if(state.i>=state.questions.length){finish();return}renderQuestion();updateCloudBadge(state.name+' · 已续接第'+(state.i+1)+'题','online');
+  show('quiz');if(state.i>=state.questions.length){finish();return}if(state.ladderMode)prepareRapidLadderQuestion();saveQuizCheckpoint();renderQuestion();updateCloudBadge(state.name+' · 已续接第'+(state.i+1)+'题','online');
 }
 function offerQuizCheckpoint(){
   const checkpoint=readQuizCheckpoint();if(!checkpoint)return;
@@ -1428,8 +1476,74 @@ function usedIds(day){
   const meta=SCHEDULE[day],sessions=meta&&meta.assessmentKey?state.profile.sessions.filter(function(s){return sessionBelongsToAssessment(s,day)}):state.profile.sessions;
   return new Set(sessions.flatMap(function(s){return (s.answers||[]).filter(function(a){return !isRetiredLegacyAnswer(a)}).map(function(a){return a.id})}));
 }
-function schedulePool(meta){return meta.poolDays.flatMap(function(poolDay){return pools[poolDay]||[]}).filter(function(q){return !meta.tags.length||meta.tags.includes(q.tag)})}
+function schedulePool(meta,includeLadderOnly){return meta.poolDays.flatMap(function(poolDay){return pools[poolDay]||[]}).filter(function(q){return (includeLadderOnly||!q.ladderOnly)&&(!meta.tags.length||meta.tags.includes(q.tag))})}
 function isScheduleUnlocked(meta,nowMs){return !meta||!meta.unlockAt||Number(nowMs==null?Date.now():nowMs)>=Date.parse(meta.unlockAt)}
+function isRapidLadderStudent(name,day,nowMs){return Number(day)===11&&RAPID_LADDER_STUDENT_HASHES.has(hash(RAPID_LADDER_NAME_SALT+normalizedClientName(name)))&&isScheduleUnlocked(SCHEDULE[11],nowMs)}
+function advanceRapidLadder(progress,ok){
+  const current={level:Math.max(1,Math.min(4,Number(progress&&progress.level)||1)),correctAtLevel:Math.max(0,Number(progress&&progress.correctAtLevel)||0)};
+  if(!ok)return current;
+  if(current.level>=4)return {level:4,correctAtLevel:Math.min(2,current.correctAtLevel+1)};
+  const correct=current.correctAtLevel+1;
+  return correct>=2?{level:current.level+1,correctAtLevel:0}:{level:current.level,correctAtLevel:correct};
+}
+function advanceRapidLadderForTag(progress,ok,tag){const next=advanceRapidLadder(progress,ok),ceiling=rapidLadderTagCeiling(tag);return next.level>ceiling?{level:ceiling,correctAtLevel:2}:next}
+function isRapidLadderAnswer(answer){return !!answer&&(answer.ladderPolicy===RAPID_LADDER_POLICY||String(answer.sourceModel||'').startsWith(RAPID_LADDER_POLICY+' · '))}
+function rapidLadderHistoryAnswers(day){
+  return sessionsFor(day).flatMap(function(session){return (session.answers||[]).map(function(answer,index){return {answer:answer,dateMs:Number(session.dateMs)||0,index:index}})}).filter(function(item){return isRapidLadderAnswer(item.answer)}).sort(function(a,b){return a.dateMs-b.dateMs||a.index-b.index}).map(function(item){return item.answer});
+}
+function rapidLadderProgress(day){return rapidLadderHistoryAnswers(day).reduce(function(progress,answer){return Number(answer.level)===progress.level?advanceRapidLadder(progress,!!answer.ok):progress},{level:1,correctAtLevel:0})}
+function rapidLadderFocusTags(day){
+  const sessions=sessionsFor(day),diagnostic=sessions.filter(function(session){return session.round===1}).slice(-1)[0],latest=sessions.slice(-1)[0];
+  if(!diagnostic)return[];
+  const initialWrong=new Set((diagnostic.answers||[]).filter(function(answer){return !answer.ok}).map(function(answer){return answer.tag})),latestWrong=new Set((latest&&latest.round>1?latest.answers:[]||[]).filter(function(answer){return !answer.ok}).map(function(answer){return answer.tag}));
+  return Array.from(new Set(Array.from(initialWrong).filter(function(tag){const progress=rapidLadderTagProgress(day,tag);return progress.level<rapidLadderTagCeiling(tag)||progress.correctAtLevel<2}).concat(Array.from(latestWrong))));
+}
+function rapidLadderTagCeiling(tag){for(let level=4;level>=2;level--)if(rapidLadderCandidates(level,[tag]).length>=2)return level;return 1}
+function rapidLadderTagProgress(day,tag){
+  const sessions=sessionsFor(day),diagnostic=sessions.filter(function(session){return session.round===1}).slice(-1)[0],diagnosticAnswer=diagnostic&&(diagnostic.answers||[]).find(function(answer){return answer.tag===tag}),start={level:1,correctAtLevel:diagnosticAnswer&&diagnosticAnswer.ok?1:0};
+  return rapidLadderHistoryAnswers(day).filter(function(answer){return answer.tag===tag}).reduce(function(progress,answer){return Number(answer.level)===progress.level?advanceRapidLadderForTag(progress,!!answer.ok,tag):progress},start);
+}
+function rapidLadderCurrentProgress(day,tag){
+  const progress=rapidLadderTagProgress(day,tag);
+  state.answers.filter(function(answer){return answer.tag===tag&&isRapidLadderAnswer(answer)}).forEach(function(answer){if(Number(answer.level)===progress.level){const next=advanceRapidLadderForTag(progress,!!answer.ok,tag);progress.level=next.level;progress.correctAtLevel=next.correctAtLevel}});
+  return progress;
+}
+function rapidLadderAssignedLevel(q){
+  return RAPID_LADDER_CALC_TAGS.has(q.tag)?Math.max(1,Math.min(4,Number(q.level)||1)):0;
+}
+function rapidLadderCandidates(level,focusTags){
+  const focus=Array.isArray(focusTags)&&focusTags.length?new Set(focusTags):null;
+  return schedulePool(SCHEDULE[11],true).filter(function(q){if(!RAPID_LADDER_CALC_TAGS.has(q.tag)||focus&&!focus.has(q.tag))return false;const raw=rapidLadderAssignedLevel(q);if(level===1)return raw<=2;if(level===2)return raw===2||raw===3;if(level===3)return raw>=3;if(level===4)return raw===4;return false}).map(function(q){return q.level===level?q:Object.assign({},q,{level:level,ladderReleveled:true})});
+}
+function rapidLadderAvailableTags(level,tags){return (tags||[]).filter(function(tag){return rapidLadderCandidates(level,[tag]).length>0})}
+function rapidLadderBestLevel(tag,desiredLevel){const capped=Math.min(rapidLadderTagCeiling(tag),desiredLevel);for(let level=capped;level>=1;level--)if(rapidLadderCandidates(level,[tag]).length)return level;return 1}
+function pickRapidLadderQuestion(level,blockedIds,used,seed,focusTags){
+  const hasFocus=Array.isArray(focusTags)&&focusTags.length>0;
+  let candidates=rapidLadderCandidates(level,focusTags).filter(function(q){return !blockedIds.has(q.id)});
+  if(!candidates.length&&hasFocus){
+    const fallbackLevels=[1,2,3,4].filter(function(candidateLevel){return candidateLevel!==level}).sort(function(a,b){return Math.abs(a-level)-Math.abs(b-level)||a-b});
+    for(const fallbackLevel of fallbackLevels){candidates=rapidLadderCandidates(fallbackLevel,focusTags).filter(function(q){return !blockedIds.has(q.id)});if(candidates.length)break}
+  }
+  if(!candidates.length&&!hasFocus)candidates=rapidLadderCandidates(level).filter(function(q){return !blockedIds.has(q.id)});
+  const freshOriginal=candidates.filter(function(q){return q.original&&!used.has(q.id)}),freshVariant=candidates.filter(function(q){return !q.original&&!used.has(q.id)}),recycledOriginal=candidates.filter(function(q){return q.original}),recycledVariant=candidates.filter(function(q){return !q.original});
+  const source=freshOriginal.length?freshOriginal:freshVariant.length?freshVariant:recycledOriginal.length?recycledOriginal:recycledVariant;
+  const picked=shuffled(source,seed)[0];if(!picked)throw new Error((hasFocus?focusTags.join('、')+'同型题':'L'+level+'计算应用题')+'数量不足，请联系老师补充题库。');return picked;
+}
+function buildRapidLadderRound(day,round){
+  const meta=SCHEDULE[day],focusTags=rapidLadderFocusTags(day),allTags=[...RAPID_LADDER_CALC_TAGS],candidateTags=focusTags.length?focusTags.concat(allTags.filter(function(tag){return !focusTags.includes(tag)})):allTags,activeTags=candidateTags.filter(function(tag){return [1,2,3,4].some(function(level){return rapidLadderCandidates(level,[tag]).length>0})}),tagProgress=Object.fromEntries(activeTags.map(function(tag){return [tag,rapidLadderTagProgress(day,tag)]})),blocked=new Set(),used=usedIds(day),questions=[],prioritySlots=focusTags.length?Math.min(meta.target,focusTags.length*2):0;
+  for(let i=0;i<meta.target;i++){
+    const requestedTag=i<prioritySlots?focusTags[i%focusTags.length]:activeTags[(i-prioritySlots)%activeTags.length],progress=tagProgress[requestedTag]||{level:1,correctAtLevel:0},effectiveLevel=rapidLadderBestLevel(requestedTag,progress.level),q=pickRapidLadderQuestion(effectiveLevel,blocked,used,state.name+'-'+day+'-'+round+'-ladder-'+i+'-'+requestedTag+'-L'+effectiveLevel,[requestedTag]),tag=q.tag;questions.push(q);blocked.add(q.id);
+    tagProgress[tag]=advanceRapidLadderForTag(progress,true,tag);
+  }
+  const levels=Object.values(tagProgress),startLevel=Math.min.apply(null,levels.map(function(progress){return progress.level}));
+  return {questions:questions,tags:focusTags,source:latestSession(day),mode:'challenge',signals:sessionSignals(latestSession(day)),repeatExact:false,diagnosticRound:false,rapidLadder:true,startLevel:startLevel,startCorrectAtLevel:0,focusTags:focusTags};
+}
+function prepareRapidLadderQuestion(){
+  if(!state.ladderMode||state.i>=state.questions.length)return;
+  const current=state.questions[state.i],tag=current&&current.tag||state.ladderFocusTags[state.i%Math.max(1,state.ladderFocusTags.length)],progress=rapidLadderCurrentProgress(state.day,tag);state.ladderLevel=progress.level;state.ladderCorrectAtLevel=progress.correctAtLevel;if(current&&current.level===progress.level)return;
+  const blocked=new Set(state.questions.slice(0,state.i).map(function(q){return q.id}));state.answers.forEach(function(answer){blocked.add(answer.id)});
+  state.questions[state.i]=pickRapidLadderQuestion(progress.level,blocked,usedIds(state.day),state.name+'-'+state.day+'-'+state.round+'-live-'+state.i+'-'+tag+'-L'+progress.level+'-'+progress.correctAtLevel,[tag]);
+}
 function localTodayIso(nowMs){
   const parts=new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(nowMs==null?Date.now():nowMs));
   const values={};parts.forEach(function(part){if(part.type!=='literal')values[part.type]=part.value});return values.year+'-'+values.month+'-'+values.day;
@@ -1551,6 +1665,14 @@ function buildTeacherAuditSequence(day,focusTag,seed){
     return rounds;
   }finally{state=savedState}
 }
+function buildRapidLadderAuditSequence(seed){
+  const savedState=state,day=11,meta=SCHEDULE[day],rounds=[],auditName=seed||'快速分层审核';state=Object.assign({},savedState,{name:auditName,cls:'',profile:emptyProfile(auditName),syncToken:'',day:day,round:1,repeatMode:false,repeatExact:false,ladderDiagnostic:true,ladderMode:false});
+  try{
+    const first=buildQuestions(day,1),firstAnswers=first.questions.map(function(q){const needsRecovery=q.tag==='气体体积与质量';return {id:q.id,day:q.day,tag:q.tag,level:q.level,sourceModel:q.sourceModel,q:q.q,ok:!needsRecovery,sec:needsRecovery?50:18,mine:needsRecovery?q.o[(q.a+1)%q.o.length]:q.o[q.a],correctAnswer:q.o[q.a],explanation:q.e}}),firstSession={clientSessionId:'teacher-ladder-audit-1',day:day,round:1,date:'教师审核',dateMs:1,correct:firstAnswers.filter(function(a){return a.ok}).length,total:firstAnswers.length,totalSec:firstAnswers.reduce(function(sum,a){return sum+a.sec},0),answers:firstAnswers,assessmentKey:meta.assessmentKey};state.profile.sessions.push(firstSession);rounds.push({round:1,questions:first.questions,tags:first.tags,mode:'standard',source:null,session:firstSession});
+    for(let round=2;round<=5;round++){state.round=round;state.ladderMode=true;const built=buildRapidLadderRound(day,round),answers=built.questions.map(function(q){return {id:q.id,day:q.day,tag:q.tag,level:q.level,sourceModel:RAPID_LADDER_POLICY+' · '+q.sourceModel,q:q.q,ok:true,sec:18,mine:q.o[q.a],correctAnswer:q.o[q.a],explanation:q.e}}),session={clientSessionId:'teacher-ladder-audit-'+round,day:day,round:round,date:'教师审核',dateMs:round,correct:answers.length,total:answers.length,totalSec:answers.length*18,answers:answers,assessmentKey:meta.assessmentKey};state.profile.sessions.push(session);rounds.push({round:round,questions:built.questions,tags:built.tags,mode:'challenge',source:built.source,session:session})}
+    return rounds;
+  }finally{state=savedState}
+}
 function populateAuditDayOptions(){
   if($('auditDay').options.length)return;
   $('auditDay').innerHTML=Object.keys(SCHEDULE).map(function(day){const meta=SCHEDULE[day];return '<option value="'+day+'">'+escapeAuditHtml(dateWithWeek(meta)+' · '+meta.title)+'</option>'}).join('');
@@ -1558,7 +1680,7 @@ function populateAuditDayOptions(){
 }
 function populateAuditFocusOptions(day){
   const meta=SCHEDULE[day],previous=$('auditFocusTag').value,tags=(meta.diagnosticTags&&meta.diagnosticTags.length?meta.diagnosticTags:meta.tags)||[];
-  $('auditFocusTag').innerHTML=tags.map(function(tag){return '<option value="'+escapeAuditHtml(tag)+'">'+escapeAuditHtml(tag)+'</option>'}).join('');
+  const options=day===11?['快速分层专项（指定学生）'].concat(tags):tags;$('auditFocusTag').innerHTML=options.map(function(tag){return '<option value="'+escapeAuditHtml(tag)+'">'+escapeAuditHtml(tag)+'</option>'}).join('');
   if(tags.includes(previous))$('auditFocusTag').value=previous;
 }
 function formatReviewActivityDate(value){
@@ -1607,13 +1729,13 @@ function renderTeacherAudit(){
   populateAuditDayOptions();
   const day=Number($('auditDay').value||10);populateAuditFocusOptions(day);
   const roundNumber=Math.max(1,Math.min(5,Number($('auditRound').value)||1)),focusTag=$('auditFocusTag').value||SCHEDULE[day].tags[0],meta=SCHEDULE[day];
-  const rounds=buildTeacherAuditSequence(day,focusTag,'甘老师审核-'+day+'-'+focusTag+'-'+auditGeneration),first=rounds[0],expectedTags=(meta.diagnosticTags&&meta.diagnosticTags.length?meta.diagnosticTags:meta.tags)||[],firstTags=new Set(first.questions.map(function(q){return q.tag})),covered=expectedTags.filter(function(tag){return firstTags.has(tag)}).length;
+  const rapidAudit=day===11&&focusTag==='快速分层专项（指定学生）',rounds=rapidAudit?buildRapidLadderAuditSequence('甘老师快速分层审核'):buildTeacherAuditSequence(day,focusTag,'甘老师审核-'+day+'-'+focusTag+'-'+auditGeneration),first=rounds[0],expectedTags=(meta.diagnosticTags&&meta.diagnosticTags.length?meta.diagnosticTags:meta.tags)||[],firstTags=new Set(first.questions.map(function(q){return q.tag})),covered=expectedTags.filter(function(tag){return firstTags.has(tag)}).length;
   const allIds=rounds.flatMap(function(item){return item.questions.map(function(q){return q.id})}),uniqueIds=new Set(allIds),selected=rounds[roundNumber-1],seen=new Set();
   $('teacherReviewerName').textContent=(teacherSession.displayName||'甘老师')+' · 已验证';
   $('auditTotalQuestions').textContent=String(allQuestions.length);
   $('auditFirstCoverage').textContent=covered+'/'+expectedTags.length;
   $('auditUniqueQuestions').textContent=uniqueIds.size+'/'+allIds.length;
-  $('auditAdaptiveStatus').textContent='第1轮覆盖 '+covered+'/'+expectedTags.length+' 个要求知识点；审核模拟把“'+focusTag+'”设为错答且停留50秒，第2—5轮会优先用新的同类型题回收。'+(uniqueIds.size===allIds.length?' 五轮题目没有跨轮重复。':' 当前五轮检测到 '+(allIds.length-uniqueIds.size)+' 道跨轮重复，请继续检查。');
+  $('auditAdaptiveStatus').textContent=rapidAudit?'指定学生路径：第1轮覆盖 '+covered+'/'+expectedTags.length+' 个知识点排雷；预览把“气体体积与质量”设为雷区，第2轮从L1降级回收，并按每个知识点累计答对2题升级。':'第1轮覆盖 '+covered+'/'+expectedTags.length+' 个要求知识点；审核模拟把“'+focusTag+'”设为错答且停留50秒，第2—5轮会优先用新的同类型题回收。'+(uniqueIds.size===allIds.length?' 五轮题目没有跨轮重复。':' 当前五轮检测到 '+(allIds.length-uniqueIds.size)+' 道跨轮重复，请继续检查。');
   $('auditRoundSummary').innerHTML=rounds.map(function(item){
     const newCount=item.questions.filter(function(q){if(seen.has(q.id))return false;seen.add(q.id);return true}).length;
     return '<div class="audit-round '+(item.round===roundNumber?'active':'')+'"><b>第'+item.round+'轮 · '+item.questions.length+'题</b><span>新题 '+newCount+' 道 · '+(item.mode==='review'?'审题回收':item.mode==='challenge'?'迁移升难':'难度匹配')+'</span></div>';
@@ -1668,18 +1790,18 @@ function renderDashboard(){
 }
 function chooseDay(day,mode){
   const meta=SCHEDULE[day];if(!meta)return;if(!isScheduleUnlocked(meta)){alert(unlockText(meta)+'开放；此前请继续完成已经讲过的内容。');return}
-  state.day=day;state.round=sessionsFor(day).length+1;state.repeatMode=mode==='repeat';state.repeatExact=false;if(state.round>50){alert('该日期已保存50轮，请联系老师归档后继续。');return}
+  state.day=day;state.round=sessionsFor(day).length+1;state.repeatMode=mode==='repeat';state.repeatExact=false;state.ladderDiagnostic=!state.repeatMode&&isRapidLadderStudent(state.name,day)&&state.round===1;state.ladderMode=!state.repeatMode&&isRapidLadderStudent(state.name,day)&&state.round>=2;if(state.round>50){alert('该日期已保存50轮，请联系老师归档后继续。');return}
   try{
-    const built=buildQuestions(day,state.round);state.questions=built.questions;state.adaptiveTags=built.tags;state.adaptiveFrom=built.source?(built.source.day===day?'本日第'+built.source.round+'轮':dateWithWeek(SCHEDULE[built.source.day])+'的第'+built.source.round+'轮'):'';state.mode=built.mode;state.sourceSignals=built.signals;state.repeatExact=!!built.repeatExact;state.reviewMode=built.mode==='review'&&!state.repeatExact;state.minSubmitSec=state.reviewMode?8:0;
+    const built=state.ladderMode?buildRapidLadderRound(day,state.round):buildQuestions(day,state.round);state.questions=built.questions;state.adaptiveTags=built.tags;state.adaptiveFrom=built.source?(built.source.day===day?'本日第'+built.source.round+'轮':dateWithWeek(SCHEDULE[built.source.day])+'的第'+built.source.round+'轮'):'';state.mode=built.mode;state.sourceSignals=built.signals;state.repeatExact=!!built.repeatExact;state.reviewMode=!state.ladderMode&&built.mode==='review'&&!state.repeatExact;state.minSubmitSec=state.reviewMode?8:0;state.ladderFocusTags=built.focusTags||[];state.ladderStartLevel=Number(built.startLevel)||1;state.ladderLevel=Number(built.startLevel)||1;state.ladderCorrectAtLevel=Number(built.startCorrectAtLevel)||0;
   }catch(error){alert(error.message);return}
-  const poolCount=schedulePool(meta).length;
+  const poolCount=schedulePool(meta,state.ladderMode).length;
   $('topDay').textContent=dateWithWeek(meta)+' · 第'+state.round+'轮';
   $('planDay').textContent=dateWithWeek(meta)+' · 第'+state.round+'轮';
   $('planCount').textContent='本轮'+state.questions.length+'题 · 对应题库'+poolCount+'题';
   $('planTitle').textContent=meta.title;
   $('planText').textContent=meta.desc;
-  const modePrefix=state.repeatMode?(state.repeatExact?'本轮将重做上一次的原题。':'旧记录未保留完整原题，本轮改为相同知识点的重做变式。'):state.round===1&&meta.diagnosticTags?'首轮已按诊断蓝图覆盖全部'+meta.diagnosticTags.length+'个知识点。':state.mode==='challenge'?'上一轮正确率较高，本轮已提高综合推理题比例。':state.mode==='review'?'上一轮出现低正确率与较快作答信号，本轮启用8秒审题保护并优先回收基础模型。':'本轮按当前日期的知识点配置题目。';
-  $('adaptiveInfo').textContent=modePrefix+(state.adaptiveTags.length?' 将重点回收：'+state.adaptiveTags.join('、')+'。':' 完成后，错误和超过45秒的知识点会在下一轮加量。');
+  const modePrefix=state.ladderDiagnostic?'第1轮固定覆盖本课全部'+meta.diagnosticTags.length+'个知识点，先排雷，不在本轮中升降级。第2轮起再按本轮错题降级回收。':state.ladderMode?'第2轮起进入分层回收：先针对第1轮错题从L1修复；每一级累计答对2题立即升一级，最高进入L4计算综合题。讲义原题优先，随后使用未做过的同类型应用变式。':state.repeatMode?(state.repeatExact?'本轮将重做上一次的原题。':'旧记录未保留完整原题，本轮改为相同知识点的重做变式。'):state.round===1&&meta.diagnosticTags?'首轮已按诊断蓝图覆盖全部'+meta.diagnosticTags.length+'个知识点。':state.mode==='challenge'?'上一轮正确率较高，本轮已提高综合推理题比例。':state.mode==='review'?'上一轮出现低正确率与较快作答信号，本轮启用8秒审题保护并优先回收基础模型。':'本轮按当前日期的知识点配置题目。';
+  $('adaptiveInfo').textContent=modePrefix+(state.ladderMode?(state.adaptiveTags.length?' 雷区：'+state.adaptiveTags.join('、')+'。':' 第1轮未发现错题，从L1快速确认后升阶。'):state.ladderDiagnostic?'':state.adaptiveTags.length?' 将重点回收：'+state.adaptiveTags.join('、')+'。':' 完成后，错误和超过45秒的知识点会在下一轮加量。');
   let cardHtml=meta.cards.map(function(c){return '<div class="card"><strong>'+chemistryHtml(c[0])+'</strong>'+chemistryHtml(c[1])+'</div>'}).join('');
   if(meta.tags.includes('树状分类法'))cardHtml+=classificationTreeVisual();
   if(day>=10)cardHtml+=moleRelationVisual(day);
@@ -1759,9 +1881,9 @@ function visualFor(q){
 }
 function finish(){
   clearInterval(state.timerId);
-  const totalSec=Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),correct=state.answers.filter(function(a){return a.ok}).length;
+  const totalSec=Math.max(1,Math.round((Date.now()-state.quizStart)/1000)),correct=state.answers.filter(function(a){return a.ok}).length,highLevelAnswers=state.answers.filter(function(a){return a.level>=3}),highLevelCorrect=highLevelAnswers.filter(function(a){return a.ok}).length,originalCount=state.answers.filter(function(a){return a.original}).length;
   const accuracy=correct/state.questions.length,avgSec=Math.round(totalSec/state.questions.length);
-  const result={clientSessionId:(window.crypto&&crypto.randomUUID?crypto.randomUUID():'web-'+Date.now()+'-'+Math.random().toString(36).slice(2)),day:state.day,round:state.round,assessmentKey:SCHEDULE[state.day].assessmentKey||'',date:new Date().toLocaleDateString('zh-CN'),dateMs:Date.now(),correct:correct,total:state.questions.length,totalSec:totalSec,answers:state.answers,cloudSynced:false};
+  const result={clientSessionId:(window.crypto&&crypto.randomUUID?crypto.randomUUID():'web-'+Date.now()+'-'+Math.random().toString(36).slice(2)),day:state.day,round:state.round,assessmentKey:SCHEDULE[state.day].assessmentKey||'',adaptivePolicy:state.ladderMode?RAPID_LADDER_POLICY:'',ladderDiagnostic:state.ladderDiagnostic,ladderStartLevel:state.ladderMode?state.ladderStartLevel:null,ladderEndLevel:state.ladderMode?state.ladderLevel:null,ladderCorrectAtLevel:state.ladderMode?state.ladderCorrectAtLevel:null,highLevelCorrect:state.ladderMode?highLevelCorrect:null,highLevelTotal:state.ladderMode?highLevelAnswers.length:null,originalCount:state.ladderMode?originalCount:null,date:new Date().toLocaleDateString('zh-CN'),dateMs:Date.now(),correct:correct,total:state.questions.length,totalSec:totalSec,answers:state.answers,cloudSynced:false};
   state.profile.sessions.push(result);saveProfile();
   clearQuizCheckpoint(state.name);checkpointPromptedSignature='';
   const stats={};
@@ -1779,13 +1901,16 @@ function finish(){
   $('slow').textContent=fastWrong.length?'有'+fastWrong.length+'道错题在10秒内提交；平均每题'+avgSec+'秒':slowTags.length?'停留偏长：'+slowTags.join('、'):'平均每题'+avgSec+'秒，未见明显节奏异常';
   $('skillChart').innerHTML=ranked.map(function(x){const color=x.rate===1&&x.avg<45?'#24785d':x.rate>=.5?'#ad7419':'#bd4b4b';return '<div class="skill-row"><span>'+x.tag+'</span><div class="skill-track"><div class="skill-fill" style="width:'+Math.round(x.rate*100)+'%;background:'+color+'"></div></div><b>'+x.correct+'/'+x.total+'</b></div>'}).join('');
   const nextTags=Array.from(new Set(gapTags.concat(slowTags)));
-  const nextMode=accuracy>=.9?'综合挑战':(fastWrong.length>=2||(accuracy<.85&&avgSec<=20))?'审题复核':'常规迁移';
+  const ladderEntries=state.ladderMode?Array.from(new Set(state.answers.map(function(answer){return answer.tag}))).map(function(tag){return {tag:tag,progress:rapidLadderCurrentProgress(state.day,tag)}}):[],ladderLevels=ladderEntries.map(function(entry){return entry.progress.level}),ladderRange=ladderLevels.length?'L'+Math.min.apply(null,ladderLevels)+(Math.min.apply(null,ladderLevels)===Math.max.apply(null,ladderLevels)?'':'—L'+Math.max.apply(null,ladderLevels)):'L1';
+  const ladderSummary=state.ladderMode?'本轮各知识点独立分层，当前范围'+ladderRange+'；'+ladderEntries.map(function(entry){return entry.tag+' L'+entry.progress.level+'（'+Math.min(2,entry.progress.correctAtLevel)+'/2）'}).join('、')+'；'+(highLevelAnswers.length?'L3—L4为'+highLevelCorrect+'/'+highLevelAnswers.length:'尚未进入L3—L4')+'；使用讲义原题'+originalCount+'道。':'';
+  const diagnosticSummary=state.ladderDiagnostic?'第1轮已覆盖全部'+SCHEDULE[state.day].diagnosticTags.length+'个知识点；发现雷区'+(gapTags.length?gapTags.join('、'):'0项')+'。':'';
+  const nextMode=state.ladderDiagnostic?'错题降级回收':state.ladderMode?'快速分层':accuracy>=.9?'综合挑战':(fastWrong.length>=2||(accuracy<.85&&avgSec<=20))?'审题复核':'常规迁移';
   $('nextTitle').textContent='本日第'+(state.round+1)+'轮：'+nextMode;
-  $('nextPlan').textContent=nextMode==='综合挑战'?'提高L3—L4综合题比例，继续用多条件题检查每一步依据。':nextMode==='审题复核'?'启用每题8秒审题保护，优先增加'+(nextTags.length?nextTags.join('、'):'本轮失分知识点')+'的基础到迁移同型题。':'增加'+(nextTags.length?nextTags.join('、'):'本轮核心模型')+'的同型新题；优先使用未做变式，题库轮完后允许重做。';
+  $('nextPlan').textContent=state.ladderDiagnostic?'第2轮优先给'+(gapTags.length?gapTags.join('、'):'本轮全部知识点')+'各安排2道L1回收题；每个错点累计答对2题后单独升级，其余题量用未做计算应用题继续拉开区分度。':state.ladderMode?'各知识点继续沿用独立等级；未过关与本轮新增错点优先回收，每级累计答对2题后升级到该知识点适合的最高层，优先使用未做同类型题。':nextMode==='综合挑战'?'提高L3—L4综合题比例，继续用多条件题检查每一步依据。':nextMode==='审题复核'?'启用每题8秒审题保护，优先增加'+(nextTags.length?nextTags.join('、'):'本轮失分知识点')+'的基础到迁移同型题。':'增加'+(nextTags.length?nextTags.join('、'):'本轮核心模型')+'的同型新题；优先使用未做变式，题库轮完后允许重做。';
   const habitText=fastWrong.length>=2||(accuracy<.75&&avgSec<=20)?'审题与复核习惯需重点干预':accuracy<.85&&avgSec<=20?'存在作答偏快信号，建议加强复核':accuracy>=.9&&avgSec<=15?'基础题提取很快，应立即升难':'本轮节奏基本正常';
-  const difficultyText=accuracy>=.9?'当前题目区分度不足，下一轮自动提升综合题比例。':accuracy<.75?'先稳固L1—L2核心模型，再逐步迁移。':'当前难度基本匹配，继续用变式检验稳定性。';
-  const familyText='本轮完成'+correct+'/'+state.questions.length+'（'+Math.round(accuracy*100)+'%），用时'+formatTime(totalSec)+'，平均每题'+avgSec+'秒。'+(fastWrong.length?'其中有'+fastWrong.length+'道错题在10秒内提交，说明需要重点检查审题与提交前复核。':'未发现集中性的快速错答。')+'\n建议：'+(nextMode==='审题复核'?'监督完成本日后续轮次；每题先圈出比较对象、方向和条件，选定后再复核一次。若课堂中也有漏看板书或抄写错误，可将两类证据一起记录，持续观察一周。':nextMode==='综合挑战'?'基础题已不能充分暴露问题，后续应完成L3—L4多条件综合题，重点检查能否解释每一步依据。':'继续完成下一轮同型变式，重点回收'+(nextTags.length?nextTags.join('、'):'本轮核心知识')+'。');
-  $('teacherEvidence').innerHTML='<span class="evidence">'+correct+'/'+state.questions.length+' · '+Math.round(accuracy*100)+'% · '+formatTime(totalSec)+'</span><br>平均每题'+avgSec+'秒；10秒内错答'+fastWrong.length+'道；8秒内作答'+veryFast.length+'道。';
+  const difficultyText=state.ladderDiagnostic?'本轮用于全知识点排雷，不在首轮中升降级。'+diagnosticSummary:state.ladderMode?'本轮采用快速分层，不能只看总正确率；以已解锁等级和L3—L4正确率判断区分度。'+ladderSummary:accuracy>=.9?'当前题目区分度不足，下一轮自动提升综合题比例。':accuracy<.75?'先稳固L1—L2核心模型，再逐步迁移。':'当前难度基本匹配，继续用变式检验稳定性。';
+  const familyText='本轮完成'+correct+'/'+state.questions.length+'（'+Math.round(accuracy*100)+'%），用时'+formatTime(totalSec)+'，平均每题'+avgSec+'秒。'+(state.ladderDiagnostic?diagnosticSummary:state.ladderMode?ladderSummary+' 本轮评价以达到等级和高阶题表现为主，不以100%为目标。':fastWrong.length?'其中有'+fastWrong.length+'道错题在10秒内提交，说明需要重点检查审题与提交前复核。':'未发现集中性的快速错答。')+'\n建议：'+(state.ladderDiagnostic?'继续第2轮；系统先给每个错点安排2道L1回收题，答对2题后该知识点单独升级，其余题量继续用未做计算应用题排查。':state.ladderMode?'继续完成后续轮次；系统优先推送未做过的同类型计算应用题，题库用完后才同级重做。':nextMode==='审题复核'?'监督完成本日后续轮次；每题先圈出比较对象、方向和条件，选定后再复核一次。若课堂中也有漏看板书或抄写错误，可将两类证据一起记录，持续观察一周。':nextMode==='综合挑战'?'基础题已不能充分暴露问题，后续应完成L3—L4多条件综合题，重点检查能否解释每一步依据。':'继续完成下一轮同型变式，重点回收'+(nextTags.length?nextTags.join('、'):'本轮核心知识')+'。');
+  $('teacherEvidence').innerHTML='<span class="evidence">'+correct+'/'+state.questions.length+' · '+Math.round(accuracy*100)+'% · '+formatTime(totalSec)+'</span><br>'+(state.ladderMode?ladderSummary+'<br>':'')+'平均每题'+avgSec+'秒；10秒内错答'+fastWrong.length+'道；8秒内作答'+veryFast.length+'道。';
   $('habitSignal').textContent=habitText;
   $('difficultySignal').textContent=difficultyText;
   $('familyFeedback').textContent=familyText;
@@ -1796,26 +1921,27 @@ function finish(){
   const modules=ranked.map(function(x){return '- '+x.tag+'：'+x.correct+'/'+x.total+'，平均'+x.avg+'秒'}).join('\n');
   const errors=wrong.length?wrong.map(function(a,i){return (i+1)+'. ['+a.id+'] '+canonicalChemistryText(a.q)+'\n学生答案：'+canonicalChemistryText(a.mine)+'\n正确答案：'+canonicalChemistryText(a.correctAnswer)+'\n停留：'+a.sec+'秒\n错误知识点：'+a.tag+'\n错误原因：'+canonicalChemistryText(diagnosis[a.tag]||'判断依据尚未稳定。')+'\n解析：'+canonicalChemistryText(a.explanation)}).join('\n\n'):'无';
   const slowText=slow.length?slow.map(function(a){return '- ['+a.id+'] '+a.tag+'：'+a.sec+'秒'+(a.ok?'（答对但偏慢）':'（答错）')}).join('\n'):'无';
-  $('copyText').textContent='甘老师化学｜初高衔接｜'+dateWithWeek(SCHEDULE[state.day])+'第'+state.round+'轮自适应小测\n学生：'+state.name+'\n学校/班级：'+(state.cls||'未填写')+'\n完成日期：'+result.date+'\n课程日期：'+SCHEDULE[state.day].date+'\n训练主题：'+SCHEDULE[state.day].title+'\n本轮：'+correct+'/'+state.questions.length+'（'+Math.round(accuracy*100)+'%），用时'+formatTime(totalSec)+'，平均每题'+avgSec+'秒\n【作答习惯信号】\n'+habitText+'；10秒内错答'+fastWrong.length+'道，8秒内作答'+veryFast.length+'道。\n【难度判断】\n'+difficultyText+'\n【模块表现】\n'+modules+'\n【需回收技能】\n'+(nextTags.length?nextTags.map(function(t){return '- '+t}).join('\n'):'- 无')+'\n【停留时间偏长】\n'+slowText+'\n【错题明细】\n'+errors+'\n【下一轮安排】\n'+$('nextPlan').textContent+'\n【家校沟通建议】\n'+familyText;
+  $('copyText').textContent='甘老师化学｜初高衔接｜'+dateWithWeek(SCHEDULE[state.day])+'第'+state.round+'轮自适应小测\n学生：'+state.name+'\n学校/班级：'+(state.cls||'未填写')+'\n完成日期：'+result.date+'\n课程日期：'+SCHEDULE[state.day].date+'\n训练主题：'+SCHEDULE[state.day].title+'\n本轮：'+correct+'/'+state.questions.length+'（'+Math.round(accuracy*100)+'%），用时'+formatTime(totalSec)+'，平均每题'+avgSec+'秒'+(state.ladderDiagnostic?'\n【首轮排雷】\n'+diagnosticSummary:state.ladderMode?'\n【快速分层】\n'+ladderSummary:'')+'\n【作答习惯信号】\n'+habitText+'；10秒内错答'+fastWrong.length+'道，8秒内作答'+veryFast.length+'道。\n【难度判断】\n'+difficultyText+'\n【模块表现】\n'+modules+'\n【需回收技能】\n'+(nextTags.length?nextTags.map(function(t){return '- '+t}).join('\n'):'- 无')+'\n【停留时间偏长】\n'+slowText+'\n【错题明细】\n'+errors+'\n【下一轮安排】\n'+$('nextPlan').textContent+'\n【后续学习建议】\n'+familyText;
   $('sameDay').textContent='继续本日第'+(state.round+1)+'轮';
   $('sameDay').disabled=state.round>=50;
   const nextMeta=state.day<14?SCHEDULE[state.day+1]:null,nextLocked=nextMeta&&!isScheduleUnlocked(nextMeta);
   $('nextDay').textContent=state.day>=14?'已到8月16日':nextLocked?unlockText(nextMeta)+'开放':'进入'+dateWithWeek(nextMeta);
   $('nextDay').disabled=state.day>=14||!!nextLocked;
-  $('studentPanel').classList.remove('hidden');$('teacherPanel').classList.add('hidden');$('studentTab').classList.add('active');$('teacherTab').classList.remove('active');show('report');
+  $('studentPanel').classList.remove('hidden');$('teacherPanel').classList.add('hidden');show('report');
   syncCompletedResult(result,habitText,difficultyText);
 }
 
 async function syncCompletedResult(result,habitText,difficultyText){
   if(!state.syncToken){updateCloudBadge('等待联网保存','wait');return}
+  const ownerName=state.name,ownerKey=normalizedClientName(ownerName),ownerToken=state.syncToken,ownerClass=state.cls,localProfile=state.profile;
   updateCloudBadge('正在保存…','wait');
   try{
-    const data=await cloudApi({action:'save_session',name:state.name,token:state.syncToken,session:canonicalSessionRecord(Object.assign({},result,{trainingTheme:SCHEDULE[result.day].title,schoolClass:state.cls,habitSignal:habitText,difficultySignal:difficultyText}))});
+    const data=await cloudApi({action:'save_session',name:ownerName,token:ownerToken,session:canonicalSessionRecord(Object.assign({},result,{trainingTheme:SCHEDULE[result.day].title,schoolClass:ownerClass,habitSignal:habitText,difficultySignal:difficultyText}))});
     result.cloudSynced=true;
-    state.profile=mergeProfiles(state.profile,data.profile);state.profile.cls=state.cls||state.profile.cls;saveProfile();
-    updateCloudBadge('记录已按姓名保存','online');
+    const savedProfile=mergeProfiles(localProfile,data.profile);savedProfile.cls=ownerClass||savedProfile.cls;localStorage.setItem(storageKey(ownerName),JSON.stringify(canonicalProfileRecord(savedProfile)));
+    if(normalizedClientName(state.name)===ownerKey&&state.syncToken===ownerToken){state.profile=savedProfile;updateCloudBadge('记录已按姓名保存','online')}
   }catch(error){
-    result.cloudSynced=false;saveProfile();updateCloudBadge('网络异常，记录待补传','wait');
+    result.cloudSynced=false;if(normalizedClientName(state.name)===ownerKey&&state.syncToken===ownerToken){saveProfile();updateCloudBadge('网络异常，记录待补传','wait')}
   }
 }
 async function flushPendingSessions(){
@@ -1830,9 +1956,9 @@ async function flushPendingSessions(){
 }
 async function switchStudent(){
   const token=state.syncToken,name=state.name;
-  state.syncToken='';state.profile=null;state.name='';state.cls='';
+  clearInterval(state.timerId);state.syncToken='';state.profile=null;state.name='';state.cls='';state.questions=[];state.answers=[];state.ladderDiagnostic=false;state.ladderMode=false;state.ladderFocusTags=[];state.ladderStartLevel=1;state.ladderLevel=1;state.ladderCorrectAtLevel=0;state.i=0;state.quizStart=0;state.qStart=0;
   localStorage.removeItem(TRUSTED_LOGIN_KEY);localStorage.removeItem(LOGIN_STREAK_KEY);
-  $('name').value='';$('learningCode').value='';$('className').value='';$('history').innerHTML='';$('syncStatus').className='sync-status';$('syncStatus').textContent='记录按姓名归属；同一设备连续3次验证同一姓名后，才会自动进入训练中心。';
+  $('name').value='';$('learningCode').value='';$('className').value='';$('history').innerHTML='';$('detailList').innerHTML='';$('copyText').textContent='';$('familyFeedback').textContent='';$('syncStatus').className='sync-status';$('syncStatus').textContent='记录按姓名归属；同一设备连续3次验证同一姓名后，才会自动进入训练中心。';
   $('topDay').textContent='从8月3日开始';updateCloudBadge('未验证姓名','');show('start');
   if(token&&name){try{await cloudApi({action:'logout',name:name,token:token})}catch(error){}}
 }
@@ -1883,14 +2009,12 @@ $('resetHistory').onclick=async function(){
 };
 $('backDashboard').onclick=renderDashboard;
 $('reportDashboard').onclick=renderDashboard;
-$('toQuiz').onclick=function(){const meta=SCHEDULE[state.day];if(!isScheduleUnlocked(meta)){alert(unlockText(meta)+'开放。');renderDashboard();return}state.i=0;state.answers=[];state.quizStart=Date.now();checkpointPromptedSignature='';show('quiz');saveQuizCheckpoint();renderQuestion()};
-$('submit').onclick=function(){const q=state.questions[state.i],sel=document.querySelector('input[name=ans]:checked');if(!sel||$('submit').disabled)return;const idx=Number(sel.value),sec=Math.max(1,Math.round((Date.now()-state.qStart)/1000)),ok=idx===q.a;clearInterval(state.timerId);state.answers.push({id:q.id,day:q.day,tag:q.tag,level:q.level,sourceModel:q.sourceModel,q:canonicalChemistryText(q.q),ok:ok,sec:sec,mine:canonicalChemistryText(q.o[idx]),correctAnswer:canonicalChemistryText(q.o[q.a]),explanation:canonicalChemistryText(q.e)});saveQuizCheckpoint();$('feedback').className='feedback '+(ok?'good':'bad');$('feedback').innerHTML='<b>'+(ok?'回答正确':'回答不正确')+'</b><div>'+chemistryHtml(q.e)+'</div>'+visualFor(q);$('submit').classList.add('hidden');$('next').classList.remove('hidden')};
-$('next').onclick=function(){if(state.i<state.questions.length-1){state.i++;renderQuestion()}else finish()};
+$('toQuiz').onclick=function(){const meta=SCHEDULE[state.day];if(!isScheduleUnlocked(meta)){alert(unlockText(meta)+'开放。');renderDashboard();return}state.i=0;state.answers=[];state.quizStart=Date.now();checkpointPromptedSignature='';if(state.ladderMode)prepareRapidLadderQuestion();show('quiz');saveQuizCheckpoint();renderQuestion()};
+$('submit').onclick=function(){const q=state.questions[state.i],sel=document.querySelector('input[name=ans]:checked');if(!sel||$('submit').disabled)return;const idx=Number(sel.value),sec=Math.max(1,Math.round((Date.now()-state.qStart)/1000)),ok=idx===q.a,levelBefore=state.ladderLevel,storedSourceModel=state.ladderMode?RAPID_LADDER_POLICY+' · '+q.sourceModel:q.sourceModel;clearInterval(state.timerId);state.answers.push({id:q.id,day:q.day,tag:q.tag,level:q.level,sourceModel:storedSourceModel,sourceKind:q.sourceKind||'',original:!!q.original,ladderPolicy:state.ladderMode?RAPID_LADDER_POLICY:'',ladderLevelBefore:state.ladderMode?levelBefore:null,q:canonicalChemistryText(q.q),ok:ok,sec:sec,mine:canonicalChemistryText(q.o[idx]),correctAnswer:canonicalChemistryText(q.o[q.a]),explanation:canonicalChemistryText(q.e)});let ladderMessage='';if(state.ladderMode){const nextProgress=advanceRapidLadderForTag({level:state.ladderLevel,correctAtLevel:state.ladderCorrectAtLevel},ok,q.tag),promoted=nextProgress.level>state.ladderLevel,ceiling=rapidLadderTagCeiling(q.tag);state.ladderLevel=nextProgress.level;state.ladderCorrectAtLevel=nextProgress.correctAtLevel;ladderMessage='<div>'+(promoted?'已解锁L'+state.ladderLevel+'，下一道同知识点题开始提高难度。':state.ladderLevel>=ceiling&&state.ladderCorrectAtLevel>=2?'本知识点已完成L'+ceiling+'回收；后续优先安排新的计算应用雷区。':'当前L'+state.ladderLevel+'：已累计答对'+state.ladderCorrectAtLevel+'/2题。')+'</div>'}saveQuizCheckpoint();$('feedback').className='feedback '+(ok?'good':'bad');$('feedback').innerHTML='<b>'+(ok?'回答正确':'回答不正确')+'</b><div>'+chemistryHtml(q.e)+'</div>'+ladderMessage+visualFor(q);$('submit').classList.add('hidden');$('next').classList.remove('hidden')};
+$('next').onclick=function(){if(state.i<state.questions.length-1){state.i++;if(state.ladderMode){prepareRapidLadderQuestion();saveQuizCheckpoint()}renderQuestion()}else finish()};
 $('sameDay').onclick=function(){if(state.round<50)chooseDay(state.day,'new')};
 $('nextDay').onclick=function(){if(state.day<14)chooseDay(state.day+1,'new')};
 $('copy').onclick=async function(){try{await navigator.clipboard.writeText($('copyText').textContent);$('copy').textContent='已复制'}catch(error){const range=document.createRange();range.selectNodeContents($('copyText'));const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);$('copy').textContent='已选中，请长按复制'}setTimeout(function(){$('copy').textContent='复制完整记录'},1600)};
-$('studentTab').onclick=function(){$('studentPanel').classList.remove('hidden');$('teacherPanel').classList.add('hidden');$('studentTab').classList.add('active');$('teacherTab').classList.remove('active')};
-$('teacherTab').onclick=function(){$('studentPanel').classList.add('hidden');$('teacherPanel').classList.remove('hidden');$('teacherTab').classList.add('active');$('studentTab').classList.remove('active')};
 $('teacherReviewEntry').onclick=openTeacherReview;
 $('teacherReviewBack').onclick=returnToStudentEntry;
 $('teacherAuditHome').onclick=returnToStudentEntry;
@@ -1916,7 +2040,7 @@ $('reviewActivityRefresh').onclick=function(){loadReviewActivity(true)};
 window.addEventListener('pagehide',function(){if(!$('quiz').classList.contains('hidden'))saveQuizCheckpoint()});
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&!$('quiz').classList.contains('hidden'))saveQuizCheckpoint()});
 document.addEventListener('keydown',function(event){if(event.key!=='Enter'||event.repeat||$('quiz').classList.contains('hidden'))return;const canSubmit=!$('submit').classList.contains('hidden')&&!$('submit').disabled;const canContinue=!$('next').classList.contains('hidden');if(canSubmit){event.preventDefault();$('submit').click()}else if(canContinue){event.preventDefault();$('next').click()}});
-window.__CHEM_QUIZ_TEST__={pools:pools,dayMeta:DAY_META,schedule:SCHEDULE,buildQuestions:buildQuestions,buildTeacherAuditSequence:buildTeacherAuditSequence,schedulePool:schedulePool,byId:byId,visualFor:visualFor,isScheduleUnlocked:isScheduleUnlocked,localTodayIso:localTodayIso,sessionBelongsToAssessment:sessionBelongsToAssessment,saveQuizCheckpoint:saveQuizCheckpoint,readQuizCheckpoint:readQuizCheckpoint,clearQuizCheckpoint:clearQuizCheckpoint,resumeQuizCheckpoint:resumeQuizCheckpoint,canonicalChemistryText:canonicalChemistryText,chemistryHtml:chemistryHtml};
+window.__CHEM_QUIZ_TEST__={pools:pools,dayMeta:DAY_META,schedule:SCHEDULE,buildQuestions:buildQuestions,buildRapidLadderRound:buildRapidLadderRound,buildRapidLadderAuditSequence:buildRapidLadderAuditSequence,prepareRapidLadderQuestion:prepareRapidLadderQuestion,isRapidLadderStudent:isRapidLadderStudent,advanceRapidLadder:advanceRapidLadder,rapidLadderProgress:rapidLadderProgress,rapidLadderFocusTags:rapidLadderFocusTags,rapidLadderTagProgress:rapidLadderTagProgress,rapidLadderCandidates:rapidLadderCandidates,rapidLadderAssignedLevel:rapidLadderAssignedLevel,rapidLadderPolicy:RAPID_LADDER_POLICY,buildTeacherAuditSequence:buildTeacherAuditSequence,schedulePool:schedulePool,byId:byId,visualFor:visualFor,isScheduleUnlocked:isScheduleUnlocked,localTodayIso:localTodayIso,sessionBelongsToAssessment:sessionBelongsToAssessment,saveQuizCheckpoint:saveQuizCheckpoint,readQuizCheckpoint:readQuizCheckpoint,clearQuizCheckpoint:clearQuizCheckpoint,resumeQuizCheckpoint:resumeQuizCheckpoint,canonicalChemistryText:canonicalChemistryText,chemistryHtml:chemistryHtml};
 setTimeout(function(){if(location.hash==='#teacher-review')openTeacherReview();else autoEnterTrustedStudent()},0);
 </script>
 </body></html>
