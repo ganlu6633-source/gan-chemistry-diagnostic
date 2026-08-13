@@ -47,10 +47,10 @@
   <div class="audit-login">
     <p class="eyebrow">TEACHER · READ-ONLY REVIEW</p>
     <h1>教师审核入口</h1>
-    <p class="lead">使用现有教师姓名和8位教师登录码。审核过程只读，不会写入学生训练记录。</p>
+    <p class="lead">使用教师姓名和6位教师登录码。审核过程只读，不会写入学生训练记录。</p>
     <form id="teacherReviewForm" class="form-grid">
       <label>教师姓名<input id="teacherReviewName" class="input" required autocomplete="username" placeholder="请输入教师姓名"></label>
-      <label>8位教师登录码<input id="teacherReviewCode" class="input" required inputmode="numeric" pattern="[0-9]{8}" maxlength="8" autocomplete="one-time-code" placeholder="请输入8位教师登录码"></label>
+      <label>6位教师登录码<input id="teacherReviewCode" class="input" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="请输入6位教师登录码"></label>
       <button id="teacherReviewLoginBtn" class="btn primary">进入审核台</button>
       <div id="teacherReviewError" class="audit-error" role="alert"></div>
     </form>
@@ -159,7 +159,7 @@
 
 <script>
 const CLOUD_SYNC_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-student-sync';
-const TEACHER_ACCESS_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-access';
+const TEACHER_ACCESS_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-quiz-login';
 const QUIZ_AUDIT_ENDPOINT='https://phdleezffrqqzyveicrm.supabase.co/functions/v1/chemistry-quiz-audit';
 const CLOUD_PUBLISHABLE_KEY='sb_publishable_M4xdf_9aRaxoEnHnTQZ_rg_uIQfeEgb';
 const LOGIN_STREAK_KEY='chemistry-login-streak-v1';
@@ -2023,7 +2023,7 @@ $('teacherReviewForm').onsubmit=async function(event){
   event.preventDefault();
   const name=$('teacherReviewName').value.trim(),code=$('teacherReviewCode').value.trim(),button=$('teacherReviewLoginBtn');
   if(!name){$('teacherReviewError').textContent='请输入教师姓名。';return}
-  if(!/^\d{8}$/.test(code)){$('teacherReviewError').textContent='请输入8位数字教师登录码。';return}
+  if(!/^\d{6}$/.test(code)){$('teacherReviewError').textContent='请输入6位数字教师登录码。';return}
   button.disabled=true;button.textContent='正在验证…';$('teacherReviewError').textContent='';
   try{
     const data=await teacherAccessApi({action:'login',name:name,code:code});

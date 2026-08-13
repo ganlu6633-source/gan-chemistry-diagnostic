@@ -51,7 +51,7 @@ function normalizeName(value: unknown) {
 async function authenticateTeacher(req: Request) {
   const token = req.headers.get("x-app-session")?.trim();
   if (!token || token.length < 30) return null;
-  const { data, error } = await db.rpc("chem_resolve_app_session", {
+  const { data, error } = await db.rpc("chem_resolve_quiz_teacher_session", {
     p_token_hash: await sha256(token),
   });
   if (error || !Array.isArray(data) || !data.length || data[0].access_role !== "teacher") return null;
