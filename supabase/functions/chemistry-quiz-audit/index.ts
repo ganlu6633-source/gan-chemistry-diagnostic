@@ -63,6 +63,96 @@ async function authenticateTeacher(req: Request) {
 
 type Row = Record<string, any>;
 
+function shanghaiDayBounds(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const year = Number(values.year);
+  const month = Number(values.month);
+  const day = Number(values.day);
+  const startMs = Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000;
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    start: new Date(startMs).toISOString(),
+    end: new Date(startMs + 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
+function safeTextList(value: unknown) {
+  return Array.isArray(value)
+    ? [...new Set(value.map((item) => String(item || "").trim()).filter(Boolean))].slice(0, 12)
+    : [];
+}
+
+function shapeQuizSession(row: Row, studentById: Map<string, Row>) {
+  const student = studentById.get(String(row.student_id)) || {};
+  return {
+    displayName: String(student.display_name || "未命名学生"),
+    schoolClass: String(row.school_class || ""),
+    day: Number(row.day) || 0,
+    round: Number(row.round) || 0,
+    trainingTheme: String(row.training_theme || "即时小测"),
+    correctCount: Math.max(0, Number(row.correct_count) || 0),
+    totalCount: Math.max(0, Number(row.total_count) || 0),
+    totalSec: Math.max(0, Number(row.total_sec) || 0),
+    wrongTags: safeTextList(row.wrong_tags),
+    slowTags: safeTextList(row.slow_tags),
+    completedAt: row.completed_at || row.received_at || null,
+  };
+}
+
+function buildQuizActivity(activeStudents: Row[], todaySessions: Row[], recentSessions: Row[], date: string) {
+  const studentById = new Map(activeStudents.map((student) => [String(student.id), student]));
+  const todayByStudent = new Map<string, Row[]>();
+  for (const session of todaySessions) {
+    const key = String(session.student_id);
+    const list = todayByStudent.get(key) || [];
+    list.push(session);
+    todayByStudent.set(key, list);
+  }
+
+  const recentByStudent = new Map<string, Row>();
+  for (const session of recentSessions) {
+    const key = String(session.student_id);
+    if (!recentByStudent.has(key)) recentByStudent.set(key, session);
+  }
+
+  const students = activeStudents
+    .map((student) => {
+      const key = String(student.id);
+      const sessions = (todayByStudent.get(key) || []).sort((left, right) =>
+        String(right.completed_at || right.received_at || "").localeCompare(String(left.completed_at || left.received_at || ""))
+      );
+      const last = sessions[0] || recentByStudent.get(key) || null;
+      return {
+        displayName: String(student.display_name || "未命名学生"),
+        todaySessionCount: sessions.length,
+        lastCompletedAt: last ? last.completed_at || last.received_at || null : null,
+        lastSession: last ? shapeQuizSession(last, studentById) : null,
+      };
+    })
+    .sort((left, right) =>
+      right.todaySessionCount - left.todaySessionCount ||
+      String(right.lastCompletedAt || "").localeCompare(String(left.lastCompletedAt || "")) ||
+      left.displayName.localeCompare(right.displayName, "zh-CN")
+    );
+
+  return {
+    quizDate: date,
+    summary: {
+      activeQuizStudents: activeStudents.length,
+      completedQuizSessionsToday: todaySessions.length,
+      quizStudentsToday: todayByStudent.size,
+    },
+    quizStudents: students,
+    recentQuizSessions: recentSessions.slice(0, 50).map((row) => shapeQuizSession(row, studentById)),
+  };
+}
+
 async function fetchCompletedAttempts(maxRows = 5000) {
   const rows: Row[] = [];
   const pageSize = 1000;
@@ -229,23 +319,63 @@ Deno.serve(async (req: Request) => {
 
     const [{ rows: attempts, truncated }, quizResult] = await Promise.all([
       fetchCompletedAttempts(),
-      db.from("students").select("display_name,normalized_name").eq("active", true),
+      db.from("students").select("id,display_name,normalized_name").eq("active", true).order("display_name"),
     ]);
     if (quizResult.error) throw quizResult.error;
 
+    const quizStudents = quizResult.data || [];
+    const quizStudentIds = quizStudents.map((student) => student.id).filter(Boolean);
+    const bounds = shanghaiDayBounds();
     const reviewStudentIds = [...new Set(attempts.map((attempt) => attempt.student_id).filter(Boolean))];
     const planIds = [...new Set(attempts.map((attempt) => attempt.plan_day_id).filter(Boolean))];
     const recentAttemptIds = attempts.slice(0, 100).map((attempt) => attempt.id);
-    const [reviewStudents, plans, answers] = await Promise.all([
+    const quizSessionFields = "student_id,day,round,training_theme,school_class,correct_count,total_count,total_sec,wrong_tags,slow_tags,completed_at,received_at";
+    const todayQuizRequest = quizStudentIds.length
+      ? db
+          .from("quiz_sessions")
+          .select(quizSessionFields)
+          .in("student_id", quizStudentIds)
+          .gte("completed_at", bounds.start)
+          .lt("completed_at", bounds.end)
+          .order("completed_at", { ascending: false })
+          .limit(500)
+      : Promise.resolve({ data: [], error: null });
+    const recentQuizRequest = quizStudentIds.length
+      ? db
+          .from("quiz_sessions")
+          .select(quizSessionFields)
+          .in("student_id", quizStudentIds)
+          .order("completed_at", { ascending: false })
+          .limit(100)
+      : Promise.resolve({ data: [], error: null });
+    const [reviewStudents, plans, answers, todayQuizResult, recentQuizResult] = await Promise.all([
       fetchByIds("chem_students_v2", "id,display_name,grade_band", reviewStudentIds),
       fetchByIds("chem_learning_plans", "id,plan_date,mode,title,skill_ids", planIds),
       fetchRecentAnswers(recentAttemptIds),
+      todayQuizRequest,
+      recentQuizRequest,
     ]);
+    if (todayQuizResult.error) throw todayQuizResult.error;
+    if (recentQuizResult.error) throw recentQuizResult.error;
+
+    const reviewActivity = buildReviewActivity(attempts, reviewStudents, plans, answers, quizStudents, truncated);
+    const quizActivity = buildQuizActivity(
+      quizStudents,
+      todayQuizResult.data || [],
+      recentQuizResult.data || [],
+      bounds.date,
+    );
 
     return reply(origin, 200, {
       ok: true,
       teacher: { displayName: identity.displayName },
-      activity: buildReviewActivity(attempts, reviewStudents, plans, answers, quizResult.data || [], truncated),
+      activity: {
+        ...reviewActivity,
+        summary: { ...reviewActivity.summary, ...quizActivity.summary },
+        quizDate: quizActivity.quizDate,
+        quizStudents: quizActivity.quizStudents,
+        recentQuizSessions: quizActivity.recentQuizSessions,
+      },
     });
   } catch (error) {
     console.error(error);
